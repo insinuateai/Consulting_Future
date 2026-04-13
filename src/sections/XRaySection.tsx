@@ -1,10 +1,11 @@
 'use client'
 
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef, useEffect, useCallback } from 'react'
 import { motion, AnimatePresence, useInView } from 'framer-motion'
 import { TerminalText } from '@/components/TerminalText'
 import { RadarScan } from '@/components/RadarScan'
 import { XRayResults } from '@/components/XRayResults'
+import { useSoundContext } from '@/lib/SoundContext'
 
 type Phase = 'idle' | 'scanning' | 'tech_stack' | 'opportunities' | 'results' | 'cta'
 
@@ -29,6 +30,7 @@ export function XRaySection() {
   const sectionRef = useRef<HTMLElement>(null)
   const inView = useInView(sectionRef, { once: true, amount: 0.2 })
   const timers = useRef<ReturnType<typeof setTimeout>[]>([])
+  const { playEffect } = useSoundContext()
 
   const [phase, setPhase] = useState<Phase>('idle')
   const [url, setUrl] = useState('')
@@ -38,14 +40,24 @@ export function XRaySection() {
     timers.current = []
   }
 
+  const advancePhase = useCallback((next: Phase) => {
+    setPhase(next)
+    if (next === 'results') {
+      playEffect('xray-complete')
+    } else if (next !== 'idle' && next !== 'cta') {
+      playEffect('xray-scan')
+    }
+  }, [playEffect])
+
   const startAnalysis = () => {
     if (!url.trim()) return
     clearTimers()
-    setPhase('scanning')
-    timers.current.push(setTimeout(() => setPhase('tech_stack'),   3000))
-    timers.current.push(setTimeout(() => setPhase('opportunities'), 5000))
-    timers.current.push(setTimeout(() => setPhase('results'),       8000))
-    timers.current.push(setTimeout(() => setPhase('cta'),          11000))
+    playEffect('click')
+    advancePhase('scanning')
+    timers.current.push(setTimeout(() => advancePhase('tech_stack'),   3000))
+    timers.current.push(setTimeout(() => advancePhase('opportunities'), 5000))
+    timers.current.push(setTimeout(() => advancePhase('results'),       8000))
+    timers.current.push(setTimeout(() => setPhase('cta'),              11000))
   }
 
   const reset = () => {
@@ -122,6 +134,7 @@ export function XRaySection() {
               <motion.button
                 onClick={startAnalysis}
                 disabled={!url.trim()}
+                onMouseEnter={() => playEffect('hover')}
                 className="mt-6 w-full bg-cyan text-deep font-mono text-sm uppercase tracking-wider py-4 rounded-xl disabled:opacity-30 disabled:cursor-not-allowed transition-all duration-300"
                 whileHover={url.trim() ? { boxShadow: '0 0 32px rgba(0,240,255,0.38)' } : {}}
               >
@@ -251,7 +264,8 @@ export function XRaySection() {
                       href="https://calendly.com/kianjquinlan/30min"
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="inline-block bg-cyan text-deep font-mono text-sm uppercase tracking-wider px-10 py-4 rounded-full transition-all duration-300"
+                      onMouseEnter={() => playEffect('hover')}
+                      className="cta-button inline-block bg-cyan text-deep font-mono text-sm uppercase tracking-wider px-10 py-4 rounded-full transition-all duration-300"
                       whileHover={{ scale: 1.02, boxShadow: '0 0 36px rgba(0,240,255,0.38)' }}
                     >
                       Get Your Full X-Ray — Free

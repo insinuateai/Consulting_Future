@@ -1,5 +1,9 @@
 'use client'
 
+import { useEffect } from 'react'
+import { useSoundContext } from '@/lib/SoundContext'
+import { useHackerMode } from '@/lib/HackerModeContext'
+
 const TICKER_ITEMS = [
   'Agent #47 completed invoice batch — 2s ago',
   '$12.4K saved for Client Echo today',
@@ -15,9 +19,42 @@ const TICKER_ITEMS = [
   'Agent cluster auto-scaled to handle 3.4x traffic spike',
 ]
 
+const L33T_MAP: Record<string, string> = {
+  a: '4', e: '3', i: '1', o: '0', s: '5', t: '7',
+  A: '4', E: '3', I: '1', O: '0', S: '5', T: '7',
+}
+
+function l33t(text: string): string {
+  return text.split('').map(c => L33T_MAP[c] ?? c).join('')
+}
+
 export function Ticker() {
+  const { playEffect, enabled } = useSoundContext()
+  const { active: hackerMode } = useHackerMode()
+
+  // Random blip every 5–10 seconds
+  useEffect(() => {
+    if (!enabled) return
+    let timeoutId: ReturnType<typeof setTimeout>
+
+    const schedule = () => {
+      const delay = 5000 + Math.random() * 5000
+      timeoutId = setTimeout(() => {
+        playEffect('ticker-blip')
+        schedule()
+      }, delay)
+    }
+
+    schedule()
+    return () => clearTimeout(timeoutId)
+  }, [enabled, playEffect])
+
+  const rawItems = hackerMode
+    ? TICKER_ITEMS.map(l33t)
+    : TICKER_ITEMS
+
   // Duplicate for seamless infinite loop
-  const items = [...TICKER_ITEMS, ...TICKER_ITEMS]
+  const items = [...rawItems, ...rawItems]
 
   return (
     <div
@@ -39,7 +76,10 @@ export function Ticker() {
       >
         {items.map((item, i) => (
           <span key={i} className="flex items-center">
-            <span className="font-mono text-[10px] text-muted px-1">
+            <span
+              className="font-mono text-[10px] text-muted px-1"
+              style={hackerMode ? { color: '#00FF88', textShadow: '0 0 6px #00FF8844' } : undefined}
+            >
               {item}
             </span>
             <span

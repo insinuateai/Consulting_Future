@@ -72,6 +72,11 @@
   to   { transform: rotate(360deg); }
 }
 
+@keyframes hacker-flicker {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.97; }
+}
+
 /* ─────────────────────────────────────────────
    TAILWIND v4 THEME — design system tokens
 ───────────────────────────────────────────── */
@@ -234,4 +239,29 @@ button,
 :focus-visible {
   outline: 1px solid var(--cyan);
   outline-offset: 2px;
+}
+
+/* ─────────────────────────────────────────────
+   CUSTOM CURSOR — hide default on pointer-fine devices
+───────────────────────────────────────────── */
+
+@media (pointer: fine) {
+  body,
+  a,
+  button,
+  [role="button"],
+  input,
+  textarea,
+  label {
+    cursor: none !important;
+  }
+}
+
+/* ─────────────────────────────────────────────
+   HACKER MODE — body class applied via JS
+───────────────────────────────────────────── */
+
+body.hacker-mode,
+body.hacker-mode * {
+  font-family: 'Courier New', Courier, monospace !important;
 }

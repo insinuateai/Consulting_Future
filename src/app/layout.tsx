@@ -1,6 +1,12 @@
 import type { Metadata } from 'next'
 import { instrumentSerif, geistSans, geistMono } from '@/lib/fonts'
+import { SoundProvider } from '@/lib/SoundContext'
+import { HackerModeProvider } from '@/lib/HackerModeContext'
 import { SmoothScroll } from '@/components/SmoothScroll'
+import { SoundEngine } from '@/components/SoundEngine'
+import { CustomCursor } from '@/components/CustomCursor'
+import { LoadingScreen } from '@/components/LoadingScreen'
+import { HackerMode } from '@/components/HackerMode'
 import './globals.css'
 
 export const metadata: Metadata = {
@@ -30,7 +36,15 @@ export default function RootLayout({
       ].join(' ')}
     >
       <body className="font-sans bg-deep text-warm antialiased overflow-x-hidden">
-        <SmoothScroll>{children}</SmoothScroll>
+        <SoundProvider>
+          <HackerModeProvider>
+            <LoadingScreen />
+            <SmoothScroll>{children}</SmoothScroll>
+            <SoundEngine />
+            <CustomCursor />
+            <HackerMode />
+          </HackerModeProvider>
+        </SoundProvider>
       </body>
     </html>
   )

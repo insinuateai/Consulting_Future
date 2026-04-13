@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useSoundContext } from '@/lib/SoundContext'
 
 const NAV_LINKS = [
   { label: 'X-Ray',      href: '#xray' },
@@ -11,6 +12,7 @@ const NAV_LINKS = [
 
 export function Navbar() {
   const [scrolled, setScrolled] = useState(false)
+  const { playEffect } = useSoundContext()
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 20)
@@ -37,6 +39,7 @@ export function Navbar() {
       {/* Logo */}
       <a
         href="/"
+        onMouseEnter={() => playEffect('hover')}
         className="font-display text-xl text-warm tracking-tight hover:text-cyan transition-colors duration-300"
         aria-label="Insinuate — home"
       >
@@ -52,6 +55,7 @@ export function Navbar() {
           <li key={href}>
             <a
               href={href}
+              onMouseEnter={() => playEffect('hover')}
               className={[
                 'font-mono uppercase tracking-widest text-xs',
                 'text-muted hover:text-warm',
@@ -72,9 +76,11 @@ export function Navbar() {
         href="https://calendly.com/kianjquinlan/30min"
         target="_blank"
         rel="noopener noreferrer"
+        onMouseEnter={() => playEffect('hover')}
+        onClick={() => playEffect('click')}
         aria-label="Book a call with Insinuate"
         className={[
-          'font-mono uppercase tracking-widest text-xs',
+          'cta-button font-mono uppercase tracking-widest text-xs',
           'px-4 py-2 rounded',
           'border border-cyan text-cyan',
           'hover:bg-cyan hover:text-deep',
