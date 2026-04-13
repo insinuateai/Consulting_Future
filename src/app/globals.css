@@ -67,6 +67,11 @@
   }
 }
 
+@keyframes radar-spin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
 /* ─────────────────────────────────────────────
    TAILWIND v4 THEME — design system tokens
 ───────────────────────────────────────────── */

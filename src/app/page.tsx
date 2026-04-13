@@ -1,27 +1,13 @@
 import { Navbar } from '@/components/Navbar'
 import { Ticker } from '@/components/Ticker'
-
-function PlaceholderSection({
-  id,
-  label,
-}: {
-  id: string
-  label: string
-}) {
-  return (
-    <section
-      id={id}
-      className="min-h-screen flex items-center justify-center border-b border-white/[0.05] relative"
-    >
-      <span
-        className="font-display text-4xl md:text-6xl text-muted select-none"
-        aria-hidden="true"
-      >
-        {label}
-      </span>
-    </section>
-  )
-}
+import { HeroSection } from '@/sections/HeroSection'
+import { XRaySection } from '@/sections/XRaySection'
+import { WarRoomSection } from '@/sections/WarRoomSection'
+import { BeforeAfterSection } from '@/sections/BeforeAfterSection'
+import { BuiltIn48Section } from '@/sections/BuiltIn48Section'
+import { BlueprintSection } from '@/sections/BlueprintSection'
+import { ModelSection } from '@/sections/ModelSection'
+import { CTASection } from '@/sections/CTASection'
 
 export default function Home() {
   return (
@@ -29,14 +15,14 @@ export default function Home() {
       <Navbar />
 
       <main className="pb-8">
-        <PlaceholderSection id="hero"     label="Hero" />
-        <PlaceholderSection id="xray"     label="Business X-Ray" />
-        <PlaceholderSection id="warroom"  label="War Room" />
-        <PlaceholderSection id="before-after" label="Before / After" />
-        <PlaceholderSection id="work"     label="Built in 48" />
-        <PlaceholderSection id="blueprint" label="Blueprint Generator" />
-        <PlaceholderSection id="model"    label="The Model" />
-        <PlaceholderSection id="cta"      label="CTA" />
+        <HeroSection />
+        <XRaySection />
+        <WarRoomSection />
+        <BeforeAfterSection />
+        <BuiltIn48Section />
+        <BlueprintSection />
+        <ModelSection />
+        <CTASection />
       </main>
 
       <Ticker />
