@@ -1,26 +1,232 @@
 @import "tailwindcss";
+@config "../../tailwind.config.ts";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
+/* ─────────────────────────────────────────────
+   KEYFRAMES
+───────────────────────────────────────────── */
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }
 
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: translateX(40px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes pulse-glow {
+  0%, 100% { box-shadow: 0 0 20px #00F0FF33; }
+  50%       { box-shadow: 0 0 40px #00F0FF66, 0 0 80px #00F0FF22; }
+}
+
+@keyframes grain {
+  0%   { transform: translate(0, 0); }
+  10%  { transform: translate(-2%, -3%); }
+  20%  { transform: translate(3%, 1%); }
+  30%  { transform: translate(-1%, 2%); }
+  40%  { transform: translate(2%, -1%); }
+  50%  { transform: translate(-3%, 3%); }
+  60%  { transform: translate(1%, -2%); }
+  70%  { transform: translate(-2%, 1%); }
+  80%  { transform: translate(3%, -3%); }
+  90%  { transform: translate(-1%, 2%); }
+  100% { transform: translate(0, 0); }
+}
+
+@keyframes ticker-scroll {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-50%); }
+}
+
+@keyframes navReveal {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ─────────────────────────────────────────────
+   TAILWIND v4 THEME — design system tokens
+───────────────────────────────────────────── */
+
+@theme {
+  /* Colors */
+  --color-deep:      #030303;
+  --color-surface:   #0A0A0A;
+  --color-elevated:  #111111;
+  --color-cyan:      #00F0FF;
+  --color-magenta:   #FF006E;
+  --color-warm:      #F0EDE6;
+  --color-muted:     #F0EDE680;
+  --color-ghost:     #F0EDE620;
+  --color-green:     #00FF88;
+  --color-amber:     #FFB800;
+
+  /* Typography */
+  --font-display: var(--font-display, "Instrument Serif"), "Instrument Serif", Georgia, serif;
+  --font-sans:    var(--font-sans,    "Geist"), "Geist", "DM Sans", system-ui, sans-serif;
+  --font-mono:    var(--font-mono,    "Geist Mono"), "Geist Mono", "Fira Code", ui-monospace, monospace;
+
+  /* Easing */
+  --ease-cinematic: cubic-bezier(0.16, 1, 0.3, 1);
+
+  /* Custom blur values for glass panels */
+  --blur-glass:    24px;
+  --blur-glass-sm: 12px;
+  --blur-glass-xs: 8px;
+
+  /* Animation shorthands */
+  --animate-fade-in-up:     fadeInUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  --animate-fade-in:        fadeIn 0.6s ease-out forwards;
+  --animate-slide-in-right: slideInRight 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  --animate-pulse-glow:     pulse-glow 3s ease-in-out infinite;
+  --animate-grain:          grain 8s steps(10) infinite;
+  --animate-ticker:         ticker-scroll 40s linear infinite;
+  --animate-nav-reveal:     navReveal 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* ─────────────────────────────────────────────
+   CSS CUSTOM PROPERTIES
+   (referenced by name in component code)
+───────────────────────────────────────────── */
+
+:root {
+  --black-deep:     #030303;
+  --black-surface:  #0A0A0A;
+  --black-elevated: #111111;
+  --cyan:           #00F0FF;
+  --cyan-glow:      #00F0FF33;
+  --cyan-dim:       #00F0FF15;
+  --magenta:        #FF006E;
+  --white-warm:     #F0EDE6;
+  --white-muted:    rgba(240, 237, 230, 0.502);
+  --white-ghost:    rgba(240, 237, 230, 0.125);
+  --green:          #00FF88;
+  --amber:          #FFB800;
+}
+
+/* ─────────────────────────────────────────────
+   CUSTOM UTILITIES
+───────────────────────────────────────────── */
+
+@utility glass-panel {
+  background-color: rgba(255, 255, 255, 0.02);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 1rem;
+}
+
+@utility glass-panel-strong {
+  background-color: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 1rem;
+}
+
+@utility glow-cyan {
+  box-shadow: 0 0 30px var(--cyan-glow);
+}
+
+@utility text-glow {
+  text-shadow: 0 0 20px var(--cyan-glow);
+}
+
+/* ─────────────────────────────────────────────
+   BASE STYLES
+───────────────────────────────────────────── */
+
+html {
+  scroll-behavior: smooth;
+  color-scheme: dark;
+}
+
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background-color: var(--black-deep);
+  color: var(--white-warm);
+  font-family: var(--font-sans), system-ui, sans-serif;
+  overflow-x: hidden;
+  position: relative;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Grain overlay */
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  width: 200%;
+  height: 200%;
+  top: -50%;
+  left: -50%;
+  pointer-events: none;
+  z-index: 9999;
+  opacity: 0.035;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n' x='0' y='0'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='1'/%3E%3C/svg%3E");
+  animation: grain 8s steps(10) infinite;
+}
+
+/* Selection */
+::selection {
+  background-color: var(--cyan);
+  color: var(--black-deep);
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+  width: 4px;
+}
+::-webkit-scrollbar-track {
+  background: var(--black-deep);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--cyan);
+  border-radius: 2px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--white-warm);
+}
+
+/* Base transitions on interactive elements */
+a,
+button,
+[role="button"] {
+  transition: color 0.3s cubic-bezier(0.16, 1, 0.3, 1),
+              background-color 0.3s cubic-bezier(0.16, 1, 0.3, 1),
+              border-color 0.3s cubic-bezier(0.16, 1, 0.3, 1),
+              box-shadow 0.3s cubic-bezier(0.16, 1, 0.3, 1),
+              opacity 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Remove focus outline for mouse users, keep for keyboard */
+:focus:not(:focus-visible) {
+  outline: none;
+}
+:focus-visible {
+  outline: 1px solid var(--cyan);
+  outline-offset: 2px;
 }
