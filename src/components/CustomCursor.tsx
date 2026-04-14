@@ -47,8 +47,8 @@ export function CustomCursor() {
     const lerp = (a: number, b: number, t: number) => a + (b - a) * t
 
     const tick = () => {
-      pos.current.x = lerp(pos.current.x, target.current.x, 0.12)
-      pos.current.y = lerp(pos.current.y, target.current.y, 0.12)
+      pos.current.x = lerp(pos.current.x, target.current.x, 0.25)
+      pos.current.y = lerp(pos.current.y, target.current.y, 0.25)
 
       if (cursorRef.current) {
         cursorRef.current.style.transform = `translate(${pos.current.x}px, ${pos.current.y}px) translate(-50%, -50%)`
