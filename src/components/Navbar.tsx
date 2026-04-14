@@ -4,10 +4,11 @@ import { useState, useEffect } from 'react'
 import { useSoundContext } from '@/lib/SoundContext'
 
 const NAV_LINKS = [
-  { label: 'X-Ray',      href: '#xray' },
-  { label: 'War Room',   href: '#warroom' },
-  { label: 'Our Work',   href: '#work' },
-  { label: 'How We Work', href: '#model' },
+  { label: 'X-Ray',       href: '/#xray' },
+  { label: 'War Room',    href: '/#warroom' },
+  { label: 'Our Work',    href: '/#work' },
+  { label: 'How We Work', href: '/#model' },
+  { label: 'Playground',  href: '/playground' },
 ] as const
 
 export function Navbar() {
