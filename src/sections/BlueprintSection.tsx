@@ -201,13 +201,46 @@ function BlueprintResult({
   q3: Q3Option
   onReset: () => void
 }) {
-  const [toast, setToast] = useState(false)
   const config = blueprintConfigs[q1]
   const metrics = computeMetrics(q1, q2, q3)
 
   function handleDownload() {
-    setToast(true)
-    setTimeout(() => setToast(false), 2500)
+    const date = new Date().toISOString().split('T')[0]
+    const slug = q1.toLowerCase().replace(/[^a-z0-9]+/g, '-')
+    const content = `INSINUATE.AI — AI ARCHITECTURE BLUEPRINT
+Generated: ${date}
+
+Profile: ${q1} Automation · ${q3} · ${q2}/week
+
+ARCHITECTURE
+────────────────────────────────
+${config.sources.label.toUpperCase()}
+${config.sources.items.map(i => `  • ${i}`).join('\n')}
+
+${config.processing.label.toUpperCase()}
+${config.processing.items.map(i => `  • ${i}`).join('\n')}
+
+${config.output.label.toUpperCase()}
+${config.output.items.map(i => `  • ${i}`).join('\n')}
+
+SUPPORTING SYSTEMS
+${config.supporting.map(i => `  • ${i}`).join('\n')}
+
+PROJECTIONS
+────────────────────────────────
+Est. Build Time:     ${metrics.buildTime}
+Est. Annual Savings: ${metrics.savings}
+Automation Rate:     ${metrics.automationRate}
+
+────────────────────────────────
+Ready to build? https://calendly.com/kianjquinlan/30min
+`
+    const blob = new Blob([content], { type: 'text/plain' })
+    const a = document.createElement('a')
+    a.href = URL.createObjectURL(blob)
+    a.download = `insinuate-blueprint-${slug}-${date}.txt`
+    a.click()
+    URL.revokeObjectURL(a.href)
   }
 
   return (
@@ -302,28 +335,12 @@ function BlueprintResult({
             Let's Build This
           </a>
 
-          <div className="relative">
-            <button
-              onClick={handleDownload}
-              className="flex-1 font-mono text-sm uppercase tracking-widest py-4 px-8 glass-panel hover:border-cyan/30 text-muted hover:text-warm transition-all duration-300 rounded-sm"
-            >
-              Download Blueprint
-            </button>
-
-            <AnimatePresence>
-              {toast && (
-                <motion.div
-                  initial={{ opacity: 0, y: 8 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: 8 }}
-                  transition={{ duration: 0.3 }}
-                  className="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 whitespace-nowrap glass-panel px-4 py-2 font-mono text-xs text-cyan"
-                >
-                  Coming soon
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </div>
+          <button
+            onClick={handleDownload}
+            className="font-mono text-sm uppercase tracking-widest py-4 px-8 glass-panel hover:border-cyan/30 text-muted hover:text-warm transition-all duration-300 rounded-sm"
+          >
+            Download Blueprint
+          </button>
         </div>
       </div>
     </motion.div>

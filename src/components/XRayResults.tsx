@@ -6,21 +6,22 @@ import { useCountUp } from '@/hooks/useCountUp'
 
 const EASE = [0.16, 1, 0.3, 1] as const
 
-const WORKFLOWS = [
-  'Customer inquiry routing → AI triage agent',
-  'Invoice data extraction → Automated pipeline',
-  'Lead scoring → Predictive ML model',
-  'Report generation → Scheduled AI drafts',
-]
-
 const GAUGE_R = 58
 const CIRCUMFERENCE = 2 * Math.PI * GAUGE_R
-const SCORE = 34
-const DASH_TARGET = CIRCUMFERENCE * (1 - SCORE / 100)
 
-function ReadinessGauge() {
+export interface XRayResultsProps {
+  techStack: string[]
+  score: number
+  savingsEstimate: number
+  workflows: string[]
+}
+
+function ReadinessGauge({ score }: { score: number }) {
+  const dashTarget = CIRCUMFERENCE * (1 - score / 100)
+  const color = score >= 60 ? '#FFB800' : score >= 45 ? '#FFB800' : '#FFB800'
+
   return (
-    <div className="relative inline-flex items-center justify-center" aria-label={`AI readiness score: ${SCORE} out of 100`}>
+    <div className="relative inline-flex items-center justify-center" aria-label={`AI readiness score: ${score} out of 100`}>
       <svg width="150" height="150" viewBox="0 0 150 150" aria-hidden="true">
         {/* Track */}
         <circle
@@ -33,34 +34,34 @@ function ReadinessGauge() {
         <motion.circle
           cx="75" cy="75" r={GAUGE_R}
           fill="none"
-          stroke="#FFB800"
+          stroke={color}
           strokeWidth="7"
           strokeLinecap="round"
           strokeDasharray={CIRCUMFERENCE}
           initial={{ strokeDashoffset: CIRCUMFERENCE }}
-          animate={{ strokeDashoffset: DASH_TARGET }}
+          animate={{ strokeDashoffset: dashTarget }}
           transition={{ duration: 2, ease: 'easeOut', delay: 0.6 }}
           style={{ transform: 'rotate(-90deg)', transformOrigin: '75px 75px' }}
         />
       </svg>
       <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-        <span className="font-display text-4xl text-amber leading-none">{SCORE}</span>
+        <span className="font-display text-4xl text-amber leading-none">{score}</span>
         <span className="text-lg text-muted leading-none mt-0.5">/100</span>
       </div>
     </div>
   )
 }
 
-export function XRayResults() {
-  const savings = useCountUp(247000, 2200)
+export function XRayResults({ techStack, score, savingsEstimate, workflows }: XRayResultsProps) {
+  const savings = useCountUp(savingsEstimate, 2200)
   const [wfCount, setWfCount] = useState(0)
 
   useEffect(() => {
     const id = setInterval(() => {
-      setWfCount(c => (c < WORKFLOWS.length ? c + 1 : c))
+      setWfCount(c => (c < workflows.length ? c + 1 : c))
     }, 400)
     return () => clearInterval(id)
-  }, [])
+  }, [workflows.length])
 
   const cardVariants = (i: number) => ({
     hidden: { opacity: 0, y: 24 },
@@ -81,13 +82,13 @@ export function XRayResults() {
         animate="visible"
         variants={cardVariants(0)}
       >
-        <div className="font-display text-5xl text-cyan text-glow mb-1">4</div>
+        <div className="font-display text-5xl text-cyan text-glow mb-1">{workflows.length}</div>
         <div className="font-mono text-xs text-muted uppercase tracking-wider mb-5">
           workflows we&apos;d automate
         </div>
         <div className="space-y-3">
           <AnimatePresence>
-            {WORKFLOWS.slice(0, wfCount).map((item, i) => (
+            {workflows.slice(0, wfCount).map((item, i) => (
               <motion.p
                 key={i}
                 initial={{ opacity: 0, x: -6 }}
@@ -116,7 +117,7 @@ export function XRayResults() {
           estimated annual savings
         </div>
         <p className="text-xs text-muted mt-auto leading-relaxed">
-          Based on current headcount and workflow analysis
+          Based on {techStack.length} systems detected across your stack
         </p>
       </motion.div>
 
@@ -127,7 +128,7 @@ export function XRayResults() {
         animate="visible"
         variants={cardVariants(2)}
       >
-        <ReadinessGauge />
+        <ReadinessGauge score={score} />
         <div className="font-mono text-xs text-muted uppercase tracking-wider mt-5 mb-2">
           AI readiness score
         </div>

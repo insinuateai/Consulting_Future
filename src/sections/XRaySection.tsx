@@ -4,7 +4,7 @@ import { useState, useRef, useEffect, useCallback } from 'react'
 import { motion, AnimatePresence, useInView } from 'framer-motion'
 import { TerminalText } from '@/components/TerminalText'
 import { RadarScan } from '@/components/RadarScan'
-import { XRayResults } from '@/components/XRayResults'
+import { XRayResults, type XRayResultsProps } from '@/components/XRayResults'
 import { useSoundContext } from '@/lib/SoundContext'
 
 type Phase = 'idle' | 'scanning' | 'tech_stack' | 'opportunities' | 'results' | 'cta'
@@ -24,7 +24,17 @@ const PHASE_PROGRESS: Record<Phase, number> = {
   idle: 0, scanning: 25, tech_stack: 50, opportunities: 75, results: 100, cta: 100,
 }
 
-const TECH_STACK = ['React', 'AWS', 'PostgreSQL', 'Stripe', 'Vercel', 'HubSpot']
+const FALLBACK_DATA: XRayResultsProps = {
+  techStack:       ['React', 'AWS', 'PostgreSQL', 'Stripe'],
+  score:           41,
+  savingsEstimate: 247_000,
+  workflows: [
+    'Customer inquiry routing → AI triage agent',
+    'Invoice data extraction → Automated pipeline',
+    'Lead scoring → Predictive ML model',
+    'Report generation → Scheduled AI drafts',
+  ],
+}
 
 export function XRaySection() {
   const sectionRef = useRef<HTMLElement>(null)
@@ -34,6 +44,7 @@ export function XRaySection() {
 
   const [phase, setPhase] = useState<Phase>('idle')
   const [url, setUrl] = useState('')
+  const [analysisData, setAnalysisData] = useState<XRayResultsProps | null>(null)
 
   const clearTimers = () => {
     timers.current.forEach(clearTimeout)
@@ -52,8 +63,20 @@ export function XRaySection() {
   const startAnalysis = () => {
     if (!url.trim()) return
     clearTimers()
+    setAnalysisData(null)
     playEffect('click')
     advancePhase('scanning')
+
+    // Kick off real URL analysis in background
+    fetch('/api/xray', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ url: url.trim() }),
+    })
+      .then(r => r.json())
+      .then(data => setAnalysisData(data))
+      .catch(() => setAnalysisData(FALLBACK_DATA))
+
     timers.current.push(setTimeout(() => advancePhase('tech_stack'),   3000))
     timers.current.push(setTimeout(() => advancePhase('opportunities'), 5000))
     timers.current.push(setTimeout(() => advancePhase('results'),       8000))
@@ -64,6 +87,7 @@ export function XRaySection() {
     clearTimers()
     setPhase('idle')
     setUrl('')
+    setAnalysisData(null)
   }
 
   useEffect(() => () => clearTimers(), []) // eslint-disable-line react-hooks/exhaustive-deps
@@ -71,6 +95,10 @@ export function XRaySection() {
   const isAnalyzing = phase !== 'idle'
   const isComplete  = phase === 'results' || phase === 'cta'
   const progress    = PHASE_PROGRESS[phase]
+
+  // Use real data if available, otherwise fallback
+  const displayData = analysisData ?? FALLBACK_DATA
+  const techStack = displayData.techStack
 
   const fadeUp = {
     hidden: { opacity: 0, y: 24 },
@@ -196,7 +224,7 @@ export function XRaySection() {
                         transition={{ duration: 0.3 }}
                       >
                         <div className="flex flex-wrap gap-2 pt-1">
-                          {TECH_STACK.map((t, i) => (
+                          {techStack.map((t, i) => (
                             <motion.span
                               key={t}
                               initial={{ opacity: 0, scale: 0.75 }}
@@ -213,7 +241,7 @@ export function XRaySection() {
                           transition={{ delay: 0.9, duration: 0.5 }}
                           className="font-mono text-sm text-cyan mt-4"
                         >
-                          4 integration points identified
+                          {techStack.length} integration point{techStack.length !== 1 ? 's' : ''} identified
                         </motion.p>
                       </motion.div>
                     )}
@@ -233,7 +261,7 @@ export function XRaySection() {
                         transition={{ duration: 0.5 }}
                       >
                         <p className="font-mono text-sm text-green pt-1">
-                          4 opportunities identified across {TECH_STACK.length} systems
+                          {displayData.workflows.length} opportunities identified across {techStack.length} systems
                         </p>
                       </motion.div>
                     )}
@@ -244,7 +272,7 @@ export function XRaySection() {
 
               {/* Result cards */}
               <AnimatePresence>
-                {isComplete && <XRayResults key="results" />}
+                {isComplete && <XRayResults key="results" {...displayData} />}
               </AnimatePresence>
 
               {/* Final CTA */}
