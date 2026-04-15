@@ -1,24 +1,96 @@
-import type { Metadata } from 'next'
+import type { Metadata, Viewport } from 'next'
 import { instrumentSerif, geistSans, geistMono } from '@/lib/fonts'
 import { SoundProvider } from '@/lib/SoundContext'
 import { HackerModeProvider } from '@/lib/HackerModeContext'
+import { PostHogProvider } from '@/lib/posthog-client'
 import { SmoothScroll } from '@/components/SmoothScroll'
 import { SoundEngine } from '@/components/SoundEngine'
 import { CustomCursor } from '@/components/CustomCursor'
 import { LoadingScreen } from '@/components/LoadingScreen'
 import { HackerMode } from '@/components/HackerMode'
+import { Concierge } from '@/components/Concierge'
+import { clientEnv } from '@/lib/env'
+import {
+  ORG_SCHEMA,
+  SERVICE_SCHEMA,
+  FAQ_SCHEMA,
+  jsonLd,
+} from '@/lib/structured-data'
 import './globals.css'
 
+const TITLE = 'Insinuate — We Build, Not Consult. AI Shipped in 48 Hours.'
+const DESCRIPTION =
+  "Production AI systems shipped in 48 hours. Free 60-second business X-Ray, personalized strategic dossier, and working AI agents you can run on your own data right now."
+
 export const metadata: Metadata = {
-  title: 'Insinuate — AI Strategy & Execution',
-  description:
-    "We don't consult. We build. 48 hours from problem to production.",
-  openGraph: {
-    title: 'Insinuate — AI Strategy & Execution',
-    description:
-      "We don't consult. We build. 48 hours from problem to production.",
-    type: 'website',
+  metadataBase: new URL(clientEnv.NEXT_PUBLIC_APP_URL),
+  title: {
+    default: TITLE,
+    template: '%s — Insinuate',
   },
+  description: DESCRIPTION,
+  applicationName: 'Insinuate',
+  authors: [{ name: 'Kian Quinlan' }, { name: 'Charlie' }],
+  generator: 'Next.js',
+  keywords: [
+    'AI consulting',
+    'AI agency',
+    'AI implementation',
+    'Claude AI',
+    'AI agents',
+    'AI automation',
+    '48-hour AI build',
+    'AI strategy',
+    'AI residency',
+    'AI prototype',
+  ],
+  referrer: 'origin-when-cross-origin',
+  creator: 'Insinuate',
+  publisher: 'Insinuate',
+  formatDetection: { email: false, address: false, telephone: false },
+  alternates: { canonical: '/' },
+  openGraph: {
+    type: 'website',
+    locale: 'en_US',
+    url: '/',
+    siteName: 'Insinuate',
+    title: TITLE,
+    description: DESCRIPTION,
+    images: [
+      {
+        url: '/og-default.png',
+        width: 1200,
+        height: 630,
+        alt: 'Insinuate — We build, not consult.',
+      },
+    ],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: TITLE,
+    description: DESCRIPTION,
+    images: ['/og-default.png'],
+    creator: '@insinuate_ai',
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      'max-image-preview': 'large',
+      'max-snippet': -1,
+      'max-video-preview': -1,
+    },
+  },
+  category: 'Technology',
+}
+
+export const viewport: Viewport = {
+  themeColor: '#030303',
+  colorScheme: 'dark',
+  width: 'device-width',
+  initialScale: 1,
 }
 
 export default function RootLayout({
@@ -35,16 +107,33 @@ export default function RootLayout({
         geistMono.variable,
       ].join(' ')}
     >
+      <head>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={jsonLd(ORG_SCHEMA)}
+        />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={jsonLd(SERVICE_SCHEMA)}
+        />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={jsonLd(FAQ_SCHEMA)}
+        />
+      </head>
       <body className="font-sans bg-deep text-warm antialiased overflow-x-hidden">
-        <SoundProvider>
-          <HackerModeProvider>
-            <LoadingScreen />
-            <SmoothScroll>{children}</SmoothScroll>
-            <SoundEngine />
-            <CustomCursor />
-            <HackerMode />
-          </HackerModeProvider>
-        </SoundProvider>
+        <PostHogProvider>
+          <SoundProvider>
+            <HackerModeProvider>
+              <LoadingScreen />
+              <SmoothScroll>{children}</SmoothScroll>
+              <SoundEngine />
+              <CustomCursor />
+              <HackerMode />
+              <Concierge />
+            </HackerModeProvider>
+          </SoundProvider>
+        </PostHogProvider>
       </body>
     </html>
   )

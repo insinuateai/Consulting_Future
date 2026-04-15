@@ -5,6 +5,17 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { LEAD_SAMPLES, LEAD_STAGES, type LeadSample, type LeadBand } from '@/lib/playgroundAgents'
 import { useSoundContext } from '@/lib/SoundContext'
 import { useCountUp } from '@/hooks/useCountUp'
+import { LiveAgentPanel } from './LiveAgentPanel'
+
+const LEAD_EXAMPLE = `Company: Contoso Analytics — B2B data-platform SaaS, 420 employees, $58M ARR
+Title: VP of Engineering
+Recent signals:
+- Visited /pricing page 4× this week
+- Hiring 3 ML engineers (public posting)
+- Raised Series C 6 weeks ago
+- Downloaded "AI ops for data teams" whitepaper
+Geography: North America
+Tech stack known: Snowflake, Fivetran, Looker`
 
 const EASE = [0.16, 1, 0.3, 1] as const
 
@@ -282,6 +293,14 @@ export function LeadScoringAgent() {
           </motion.div>
         )}
       </AnimatePresence>
+
+      <LiveAgentPanel
+        slug="leads"
+        title="Score your own lead — full rationale + draft outreach."
+        placeholder="Paste lead context: company, title, signals, tech stack..."
+        example={LEAD_EXAMPLE}
+        exampleLabel="Load sample lead →"
+      />
     </div>
   )
 }

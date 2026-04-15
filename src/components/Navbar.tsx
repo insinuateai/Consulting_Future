@@ -9,6 +9,11 @@ const NAV_LINKS = [
   { label: 'Our Work',    href: '/#work' },
   { label: 'How We Work', href: '/#model' },
   { label: 'Playground',  href: '/playground' },
+  { label: 'Board Room',  href: '/boardroom' },
+  { label: 'Build',       href: '/build' },
+  { label: 'Intake',      href: '/intake' },
+  { label: 'Hire',        href: '/hire' },
+  { label: 'Scope',       href: '/scope' },
 ] as const
 
 export function Navbar() {

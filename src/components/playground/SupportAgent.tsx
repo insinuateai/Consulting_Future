@@ -8,6 +8,7 @@ import {
   type SupportPrompt,
 } from '@/lib/playgroundAgents'
 import { useSoundContext } from '@/lib/SoundContext'
+import { LiveAgentPanel } from './LiveAgentPanel'
 
 const EASE = [0.16, 1, 0.3, 1] as const
 
@@ -141,6 +142,7 @@ export function SupportAgent() {
   const remaining = SUPPORT_CONVERSATIONS.filter((c) => !askedIds.has(c.id))
 
   return (
+    <div className="space-y-10">
     <div className="grid grid-cols-1 lg:grid-cols-[1.3fr_1fr] gap-6">
       {/* Chat */}
       <div className="glass-panel-strong p-5 flex flex-col h-[540px]">
@@ -255,6 +257,15 @@ export function SupportAgent() {
           })}
         </div>
       </div>
+    </div>
+
+    <LiveAgentPanel
+      slug="support"
+      title="Ask your own question — answers cited from the KB."
+      placeholder="e.g. Can we rotate SSO metadata without downtime?"
+      example="Can I set up SSO with Okta and have groups JIT-provision?"
+      exampleLabel="Load sample question →"
+    />
     </div>
   )
 }

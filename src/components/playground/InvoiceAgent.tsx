@@ -10,6 +10,19 @@ import {
 } from '@/lib/playgroundAgents'
 import { useSoundContext } from '@/lib/SoundContext'
 import { useCountUp } from '@/hooks/useCountUp'
+import { LiveAgentPanel } from './LiveAgentPanel'
+
+const INVOICE_EXAMPLE = `INVOICE
+Northwind Logistics — 1420 Harrison St, Oakland CA
+Bill To: Helios Cloud, Inc.
+Invoice #: INV-20398
+Issue date: 2026-03-12 · Due: 2026-04-11
+
+Freight — Bay Area → Reno    qty 4   unit $1,240   amount $4,960
+Cross-dock handling           qty 12  unit $85      amount $1,020
+Fuel surcharge                qty 1   unit $318     amount $318
+
+Subtotal $6,298 · Tax $503.84 · Total $6,801.84`
 
 const EASE = [0.16, 1, 0.3, 1] as const
 
@@ -240,6 +253,7 @@ export function InvoiceAgent() {
   }
 
   return (
+    <div className="space-y-10">
     <div ref={containerRef} className="relative grid grid-cols-1 lg:grid-cols-2 gap-6">
       {/* Left: invoice preview + samples */}
       <div className="space-y-4">
@@ -362,6 +376,15 @@ export function InvoiceAgent() {
           )}
         </AnimatePresence>
       </div>
+    </div>
+
+    <LiveAgentPanel
+      slug="invoice"
+      title="Paste any invoice text — extract in one call."
+      placeholder="Paste invoice text here (vendor, line items, totals)..."
+      example={INVOICE_EXAMPLE}
+      exampleLabel="Load sample →"
+    />
     </div>
   )
 }
