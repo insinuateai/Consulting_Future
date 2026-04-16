@@ -9,8 +9,6 @@ import {
 } from '@/lib/intake/insights'
 import type { Insight, InsightCategory, Act } from '@/lib/intake/types'
 
-const EASE = [0.16, 1, 0.3, 1] as const
-
 type Theme = {
   headline: string
   subtext: string

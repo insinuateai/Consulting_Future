@@ -6,7 +6,6 @@ import type {
   BuildAppEvent,
   BuildPlan,
   DeployResult,
-  GeneratedFile,
 } from '@/lib/buildapp/types'
 
 interface Props {

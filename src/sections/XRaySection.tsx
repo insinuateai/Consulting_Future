@@ -90,7 +90,7 @@ export function XRaySection() {
     setAnalysisData(null)
   }
 
-  useEffect(() => () => clearTimers(), []) // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => () => clearTimers(), [])
 
   const isAnalyzing = phase !== 'idle'
   const isComplete  = phase === 'results' || phase === 'cta'

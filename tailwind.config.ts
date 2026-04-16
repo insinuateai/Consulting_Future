@@ -3,7 +3,7 @@
  * In v4, all design tokens (colors, fonts, animations) live in CSS @theme blocks.
  * This file is kept minimal; its primary role is content path declaration.
  */
-export default {
+const config = {
   content: [
     './src/pages/**/*.{js,ts,jsx,tsx,mdx}',
     './src/components/**/*.{js,ts,jsx,tsx,mdx}',
@@ -12,3 +12,5 @@ export default {
     './src/lib/**/*.{js,ts,jsx,tsx,mdx}',
   ],
 }
+
+export default config

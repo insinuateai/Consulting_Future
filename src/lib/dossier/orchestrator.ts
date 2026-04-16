@@ -245,7 +245,6 @@ async function runAgent(args: RunAgentArgs): Promise<AgentRunResult> {
   const start = Date.now()
   args.emit({ type: 'agent.running', slug: args.slug })
 
-  let buffer = ''
   let lastEmitAt = 0
   const EMIT_INTERVAL_MS = 80 // throttle thought emissions
 
@@ -262,7 +261,6 @@ async function runAgent(args: RunAgentArgs): Promise<AgentRunResult> {
         evt.type === 'content_block_delta' &&
         evt.delta.type === 'text_delta'
       ) {
-        buffer += evt.delta.text
         const now = Date.now()
         if (now - lastEmitAt > EMIT_INTERVAL_MS) {
           args.emit({
