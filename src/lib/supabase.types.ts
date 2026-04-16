@@ -233,6 +233,43 @@ export interface Database {
         Update: Partial<Database['public']['Tables']['generated_apps']['Insert']>
         Relationships: []
       }
+      intake_sessions: {
+        Row: {
+          id: string
+          lead_id: string | null
+          email: string | null
+          messages: Json
+          insights: Json
+          synopsis: Json | null
+          app_id: string | null
+          prototype_url: string | null
+          status: string
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          lead_id?: string | null
+          email?: string | null
+          messages?: Json
+          insights?: Json
+          synopsis?: Json | null
+          app_id?: string | null
+          prototype_url?: string | null
+          status?: string
+          created_at?: string
+          updated_at?: string
+        }
+        Update: Partial<Database['public']['Tables']['intake_sessions']['Insert']>
+        Relationships: [
+          {
+            foreignKeyName: 'intake_sessions_lead_id_fkey'
+            columns: ['lead_id']
+            referencedRelation: 'leads'
+            referencedColumns: ['id']
+          },
+        ]
+      }
       digital_employees: {
         Row: {
           id: string

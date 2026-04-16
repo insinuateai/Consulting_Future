@@ -1,18 +1,43 @@
 'use client'
 
+import { useState } from 'react'
 import { motion } from 'framer-motion'
-import type { Synopsis } from '@/lib/intake/types'
+import type { Message, Synopsis } from '@/lib/intake/types'
 
 const EASE = [0.16, 1, 0.3, 1] as const
 
 type Props = {
   synopsis: Synopsis
+  conversationMessages: Message[]
   onBuild: () => void
   onBack: () => void
 }
 
-export default function GamePlanPanel({ synopsis, onBuild, onBack }: Props) {
+export default function GamePlanPanel({ synopsis, conversationMessages, onBuild, onBack }: Props) {
   const { vision, agenticWorkflow, mvpRoadmap, businessType, appSpec } = synopsis
+  const [email, setEmail] = useState('')
+  const [emailSent, setEmailSent] = useState(false)
+  const [emailSending, setEmailSending] = useState(false)
+
+  const handleEmailSend = async () => {
+    if (!email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return
+    setEmailSending(true)
+    try {
+      await fetch('/api/intake/synopsis', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          messages: conversationMessages.map(({ role, content }) => ({ role, content })),
+          email: email.trim(),
+        }),
+      })
+      setEmailSent(true)
+    } catch {
+      // Silent fail — the plan is already on screen
+    } finally {
+      setEmailSending(false)
+    }
+  }
 
   return (
     <motion.div
@@ -95,6 +120,37 @@ export default function GamePlanPanel({ synopsis, onBuild, onBack }: Props) {
             </div>
           </div>
         </div>
+      </Section>
+
+      {/* Email capture */}
+      <Section label="05 · Get This Emailed">
+        {emailSent ? (
+          <motion.p
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="text-sm text-green font-mono"
+          >
+            Sent. Check your inbox.
+          </motion.p>
+        ) : (
+          <div className="flex gap-3 max-w-md">
+            <input
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && handleEmailSend()}
+              placeholder="your@email.com"
+              className="flex-1 bg-transparent border-b border-white/10 focus:border-cyan-400/50 outline-none text-warm font-mono text-sm py-2 placeholder:text-warm/20 transition-colors"
+            />
+            <button
+              onClick={handleEmailSend}
+              disabled={emailSending || !email.trim()}
+              className="font-mono text-[11px] uppercase tracking-[0.2em] text-cyan-400 hover:text-cyan-300 disabled:opacity-30 transition-colors"
+            >
+              {emailSending ? 'Sending...' : 'Send →'}
+            </button>
+          </div>
+        )}
       </Section>
 
       <div className="flex flex-wrap items-center gap-4 pt-4">

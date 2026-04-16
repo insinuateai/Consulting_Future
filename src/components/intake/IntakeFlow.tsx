@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useCallback } from 'react'
 import IntakeChat from './IntakeChat'
 import IntakeSidebar from './IntakeSidebar'
 import GamePlanPanel from './GamePlanPanel'
@@ -17,17 +17,20 @@ export default function IntakeFlow() {
   const [, setInsights] = useState<Insight[]>([])
   const [questionsAnswered, setQuestionsAnswered] = useState(0)
   const [synopsis, setSynopsis] = useState<Synopsis | null>(null)
+  const [conversationMessages, setConversationMessages] = useState<Message[]>([])
 
-  const handleSynopsis = (s: Synopsis) => {
+  const handleSynopsis = useCallback((s: Synopsis, convMessages: Message[]) => {
     setSynopsis(s)
+    setConversationMessages(convMessages)
     setStage('plan')
-  }
+  }, [])
 
   if (stage === 'plan' && synopsis) {
     return (
       <section className="bg-[var(--black-deep)]">
         <GamePlanPanel
           synopsis={synopsis}
+          conversationMessages={conversationMessages}
           onBuild={() => setStage('build')}
           onBack={() => setStage('chat')}
         />

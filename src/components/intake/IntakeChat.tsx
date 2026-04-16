@@ -24,7 +24,7 @@ const SUGGESTION_CHIPS = [
 
 type Props = {
   onActChange: (act: Act) => void
-  onSynopsis: (synopsis: Synopsis) => void
+  onSynopsis: (synopsis: Synopsis, messages: Message[]) => void
   onMessagesChange: (messages: Message[]) => void
   onInsightsChange: (insights: Insight[]) => void
   onQuestionsAnsweredChange: (count: number) => void
@@ -96,7 +96,7 @@ export default function IntakeChat({
 
         if (!res.ok) throw new Error('Synopsis fetch failed')
         const data = await res.json()
-        onSynopsis(data.synopsis)
+        onSynopsis(data.synopsis, conversationMessages)
       } catch {
         onSynopsis({
           vision:
@@ -122,7 +122,7 @@ export default function IntakeChat({
             keyFeatures: ['Automated intake', 'Status tracking', 'Analytics'],
             aesthetic: 'Dark professional with cyan accents',
           },
-        })
+        }, conversationMessages)
       } finally {
         setIsFetchingSynopsis(false)
       }

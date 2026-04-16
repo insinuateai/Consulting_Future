@@ -14,6 +14,7 @@ export interface XRayResultsProps {
   score: number
   savingsEstimate: number
   workflows: string[]
+  analysis?: string
 }
 
 function ReadinessGauge({ score }: { score: number }) {
@@ -52,7 +53,7 @@ function ReadinessGauge({ score }: { score: number }) {
   )
 }
 
-export function XRayResults({ techStack, score, savingsEstimate, workflows }: XRayResultsProps) {
+export function XRayResults({ techStack, score, savingsEstimate, workflows, analysis }: XRayResultsProps) {
   const savings = useCountUp(savingsEstimate, 2200)
   const [wfCount, setWfCount] = useState(0)
 
@@ -134,6 +135,21 @@ export function XRayResults({ techStack, score, savingsEstimate, workflows }: XR
         </div>
         <span className="text-amber text-xs font-mono">Significant untapped potential</span>
       </motion.div>
+
+      {/* Card 4: AI Analysis (shown when Claude provides it) */}
+      {analysis && (
+        <motion.div
+          className="glass-panel p-6 md:col-span-3"
+          initial="hidden"
+          animate="visible"
+          variants={cardVariants(3)}
+        >
+          <div className="font-mono text-xs text-muted uppercase tracking-wider mb-3">
+            AI Analysis
+          </div>
+          <p className="text-warm/80 text-sm leading-relaxed">{analysis}</p>
+        </motion.div>
+      )}
 
     </div>
   )
