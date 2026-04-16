@@ -63,6 +63,14 @@ const clientSchema = z.object({
     .default('https://us.i.posthog.com'),
   NEXT_PUBLIC_SENTRY_DSN: z.string().optional(),
   NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: z.string().optional(),
+  NEXT_PUBLIC_STRIPE_PAYMENT_LINK: z.string().url().optional(),
+  NEXT_PUBLIC_PAYMENT_LINK_LABEL: z
+    .string()
+    .default('Pay $2,500 deposit · skip the calculator'),
+  NEXT_PUBLIC_CALENDLY_URL: z
+    .string()
+    .url()
+    .default('https://calendly.com/kianjquinlan/30min'),
 })
 
 export const serverEnv = serverSchema.parse(process.env)
@@ -75,6 +83,9 @@ export const clientEnv = clientSchema.parse({
   NEXT_PUBLIC_SENTRY_DSN: process.env.NEXT_PUBLIC_SENTRY_DSN,
   NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY:
     process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY,
+  NEXT_PUBLIC_STRIPE_PAYMENT_LINK: process.env.NEXT_PUBLIC_STRIPE_PAYMENT_LINK,
+  NEXT_PUBLIC_PAYMENT_LINK_LABEL: process.env.NEXT_PUBLIC_PAYMENT_LINK_LABEL,
+  NEXT_PUBLIC_CALENDLY_URL: process.env.NEXT_PUBLIC_CALENDLY_URL,
 })
 
 export function requireServerEnv<K extends keyof typeof serverEnv>(

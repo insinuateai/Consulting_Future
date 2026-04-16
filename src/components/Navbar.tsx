@@ -3,22 +3,17 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { useSoundContext } from '@/lib/SoundContext'
+import { BookingModal } from './BookingModal'
 
 const NAV_LINKS = [
-  { label: 'X-Ray',       href: '/#xray' },
-  { label: 'War Room',    href: '/#warroom' },
-  { label: 'Our Work',    href: '/#work' },
-  { label: 'How We Work', href: '/#model' },
-  { label: 'Playground',  href: '/playground' },
-  { label: 'Board Room',  href: '/boardroom' },
-  { label: 'Build',       href: '/build' },
-  { label: 'Intake',      href: '/intake' },
-  { label: 'Hire',        href: '/hire' },
-  { label: 'Scope',       href: '/scope' },
+  { label: 'X-Ray',     href: '/#xray' },
+  { label: 'Manifesto', href: '/manifesto' },
+  { label: 'Intake',    href: '/intake' },
 ] as const
 
 export function Navbar() {
   const [scrolled, setScrolled] = useState(false)
+  const [bookingOpen, setBookingOpen] = useState(false)
   const { playEffect } = useSoundContext()
 
   useEffect(() => {
@@ -79,12 +74,13 @@ export function Navbar() {
       </ul>
 
       {/* CTA */}
-      <a
-        href="https://calendly.com/kianjquinlan/30min"
-        target="_blank"
-        rel="noopener noreferrer"
+      <button
+        type="button"
         onMouseEnter={() => playEffect('hover')}
-        onClick={() => playEffect('click')}
+        onClick={() => {
+          playEffect('click')
+          setBookingOpen(true)
+        }}
         aria-label="Book a call with Insinuate"
         className={[
           'cta-button font-mono uppercase tracking-widest text-xs',
@@ -92,10 +88,12 @@ export function Navbar() {
           'border border-cyan text-cyan',
           'hover:bg-cyan hover:text-deep',
           'transition-all duration-300',
+          'cursor-pointer',
         ].join(' ')}
       >
         Book a Call
-      </a>
+      </button>
+      <BookingModal open={bookingOpen} onClose={() => setBookingOpen(false)} />
     </nav>
   )
 }

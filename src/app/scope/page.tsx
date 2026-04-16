@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import { Navbar } from '@/components/Navbar'
 import { Ticker } from '@/components/Ticker'
 import { ScopeCalculator } from '@/components/scope/ScopeCalculator'
+import { clientEnv } from '@/lib/env'
 
 export const metadata: Metadata = {
   title: 'Scope & Pay — Insinuate.ai',
@@ -25,6 +26,14 @@ export default function ScopePage() {
             Pick your automations. See the real price. Pay 50% deposit.
             Kickoff in 24 hours. This page replaces a six-week sales cycle.
           </p>
+          {clientEnv.NEXT_PUBLIC_STRIPE_PAYMENT_LINK && (
+            <a
+              href={clientEnv.NEXT_PUBLIC_STRIPE_PAYMENT_LINK}
+              className="mt-6 inline-flex items-center gap-2 rounded border border-cyan-400/60 bg-cyan-400/10 px-4 py-2 font-mono text-[11px] uppercase tracking-[0.25em] text-cyan-300 transition hover:bg-cyan-400/20"
+            >
+              {clientEnv.NEXT_PUBLIC_PAYMENT_LINK_LABEL} →
+            </a>
+          )}
         </div>
         <ScopeCalculator />
       </main>

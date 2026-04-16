@@ -1,14 +1,17 @@
 'use client'
 
-import { useRef } from 'react'
+import { useRef, useState } from 'react'
 import { motion, useInView } from 'framer-motion'
+import { BookingModal } from '@/components/BookingModal'
+import { clientEnv } from '@/lib/env'
 
 const EASE = [0.16, 1, 0.3, 1] as const
-const CALENDLY = 'https://calendly.com/kianjquinlan/30min'
 
 export function CTASection() {
   const ref = useRef<HTMLElement>(null)
   const inView = useInView(ref, { once: true, amount: 0.3 })
+  const [bookingOpen, setBookingOpen] = useState(false)
+  const paymentLink = clientEnv.NEXT_PUBLIC_STRIPE_PAYMENT_LINK
 
   return (
     <section
@@ -74,22 +77,33 @@ export function CTASection() {
           transition={{ duration: 0.8, ease: EASE, delay: 0.4 }}
           className="mt-10"
         >
-          <a
-            href={CALENDLY}
-            target="_blank"
-            rel="noopener noreferrer"
+          <button
+            type="button"
+            onClick={() => setBookingOpen(true)}
             className="inline-flex items-center font-mono text-sm uppercase tracking-wider
               px-10 py-5 rounded-full
               bg-cyan text-deep font-medium
               hover:scale-[1.02] hover:shadow-[0_0_40px_var(--cyan-glow),0_0_80px_rgba(0,240,255,0.15)]
               transition-all duration-300
               focus-visible:outline focus-visible:outline-2 focus-visible:outline-cyan focus-visible:outline-offset-2
-              will-change-transform"
-            aria-label="Book your free Business X-Ray on Calendly"
+              will-change-transform cursor-pointer"
+            aria-label="Book your free Business X-Ray"
           >
             Book Your X-Ray
-          </a>
+          </button>
+          {paymentLink && (
+            <div className="mt-5">
+              <a
+                href={paymentLink}
+                className="inline-flex items-center font-mono text-[11px] uppercase tracking-[0.25em]
+                  text-cyan/70 hover:text-cyan transition-colors duration-300"
+              >
+                {clientEnv.NEXT_PUBLIC_PAYMENT_LINK_LABEL} →
+              </a>
+            </div>
+          )}
         </motion.div>
+        <BookingModal open={bookingOpen} onClose={() => setBookingOpen(false)} />
 
         {/* Subtext */}
         <motion.p
