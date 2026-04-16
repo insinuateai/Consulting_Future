@@ -440,12 +440,12 @@ export default function IntakeChat({
             disabled={isInputDisabled}
             placeholder={
               act === 1
-                ? 'Type your answer...'
+                ? 'Type your answer, or pick a suggestion above…'
                 : act === 2
                   ? 'Putting your Game Plan together...'
                   : 'Building your prototype...'
             }
-            className="flex-1 resize-none rounded-2xl border px-5 py-3.5 text-[14px] text-[var(--white-warm)] placeholder-[var(--white-ghost)] outline-none transition-all duration-300 disabled:opacity-25 disabled:cursor-not-allowed leading-relaxed bg-white/[0.025] border-white/[0.06] focus:border-[var(--cyan)]/30"
+            className="flex-1 resize-none rounded-2xl border px-5 py-3.5 text-[15px] text-[var(--white-warm)] placeholder:text-[var(--white-warm)]/45 outline-none transition-all duration-300 disabled:opacity-25 disabled:cursor-not-allowed leading-relaxed bg-white/[0.06] border-white/[0.14] shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] focus:border-[var(--cyan)]/50 focus:bg-white/[0.08] focus:shadow-[0_0_0_3px_rgba(0,240,255,0.08)]"
           />
           <button
             onClick={() => sendMessage(input)}

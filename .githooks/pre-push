@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+set -e
+
+echo "→ typecheck"
+npx --no-install tsc --noEmit
+
+echo "→ lint"
+npx --no-install next lint --max-warnings=0 || npx --no-install eslint .

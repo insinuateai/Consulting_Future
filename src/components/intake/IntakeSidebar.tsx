@@ -156,7 +156,7 @@ export default function IntakeSidebar({ messages, act, questionsAnswered }: Prop
 
   return (
     <div
-      className="relative flex flex-col justify-between h-full px-7 py-6 lg:px-8 lg:py-7 overflow-hidden"
+      className="relative flex flex-col justify-between h-full px-7 pt-20 pb-6 lg:px-8 lg:pt-24 lg:pb-7 overflow-hidden"
       style={{ borderRight: '1px solid var(--white-ghost)' }}
     >
       {/* Glow orb */}
