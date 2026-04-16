@@ -5,13 +5,11 @@ const STATIC_ROUTES = [
   '',
   '/manifesto',
   '/playground',
-  '/dossier',
   '/boardroom',
   '/build',
+  '/intake',
+  '/hire',
   '/scope',
-  '/live',
-  '/builds',
-  '/workforce',
 ] as const
 
 export default function sitemap(): MetadataRoute.Sitemap {
