@@ -11,15 +11,15 @@ const SYNOPSIS_TOKEN = '[SYNOPSIS_READY]'
 const INITIAL_MESSAGE: Message = {
   role: 'assistant',
   content:
-    "Welcome. I'm going to ask you three focused questions to understand your business — then build you a working prototype. Let's start:\n\nWhat is the core problem you are solving?",
+    "Hey, welcome. I'll ask you three quick questions and then build you a working prototype on the spot.\n\nTo start: what's the problem you're trying to solve?",
 }
 
 const SUGGESTION_CHIPS = [
-  'Get more customers',
-  'Automate something',
-  'Build a tool',
-  'Improve my workflow',
-  "I'm not sure yet",
+  'Client onboarding is a mess',
+  'Too much time in my inbox',
+  'My team needs a dashboard',
+  'I want to launch a new product',
+  'Still figuring it out',
 ]
 
 type Props = {
@@ -206,6 +206,10 @@ export default function IntakeChat({
           })
         }
 
+        if (!aiText.trim()) {
+          throw new Error('Empty response from discovery stream')
+        }
+
         if (!synopsisTriggered) {
           setTimeout(() => setShowContextualChips(true), 400)
         }
@@ -231,12 +235,24 @@ export default function IntakeChat({
           ]
           setTimeout(() => fetchSynopsis(finalMessages), 800)
         }
-      } catch {
+      } catch (err) {
         setIsTyping(false)
-        setMessages((prev) => [
-          ...prev,
-          { role: 'assistant', content: 'Something went wrong. Please try again.' },
-        ])
+        setMessages((prev) => {
+          const last = prev[prev.length - 1]
+          const filtered =
+            last && last.role === 'assistant' && last.content === ''
+              ? prev.slice(0, -1)
+              : prev
+          return [
+            ...filtered,
+            {
+              role: 'assistant',
+              content:
+                "Hmm, I didn't catch that. Mind trying again? If this keeps happening, refresh the page.",
+            },
+          ]
+        })
+        console.error('Discovery stream failed:', err)
       }
     },
     [isTyping, messages, act, fetchSynopsis]
@@ -252,9 +268,9 @@ export default function IntakeChat({
   const isInputDisabled = isTyping || act !== 1
 
   return (
-    <div className="flex flex-col h-full">
+    <div className="flex flex-col h-full min-h-screen">
       {/* Messages */}
-      <div className="flex-1 overflow-y-auto px-5 py-6 lg:px-8 lg:py-8">
+      <div className="flex-1 overflow-y-auto px-5 pt-28 pb-8 lg:px-8 lg:pt-36 lg:pb-10">
         <div className="max-w-xl mx-auto flex flex-col gap-5">
           <AnimatePresence mode="popLayout">
             {messages.map((msg, i) => {
@@ -405,7 +421,7 @@ export default function IntakeChat({
 
       {/* Input */}
       <div
-        className="shrink-0 px-5 py-4 lg:px-8 lg:py-5 transition-opacity duration-500"
+        className="shrink-0 px-5 pt-5 pb-20 lg:px-8 lg:pt-6 lg:pb-28 transition-opacity duration-500"
         style={{
           borderTop: '1px solid var(--white-ghost)',
           background:
@@ -424,10 +440,10 @@ export default function IntakeChat({
             disabled={isInputDisabled}
             placeholder={
               act === 1
-                ? 'Your answer...'
+                ? 'Type your answer...'
                 : act === 2
-                  ? 'Generating your Game Plan...'
-                  : 'Your prototype is being built...'
+                  ? 'Putting your Game Plan together...'
+                  : 'Building your prototype...'
             }
             className="flex-1 resize-none rounded-2xl border px-5 py-3.5 text-[14px] text-[var(--white-warm)] placeholder-[var(--white-ghost)] outline-none transition-all duration-300 disabled:opacity-25 disabled:cursor-not-allowed leading-relaxed bg-white/[0.025] border-white/[0.06] focus:border-[var(--cyan)]/30"
           />

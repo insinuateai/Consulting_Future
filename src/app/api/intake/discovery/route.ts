@@ -38,25 +38,37 @@ export async function POST(req: NextRequest) {
     }
   }
 
-  const stream = anthropic().messages.stream({
-    model: MODELS.sonnet(),
-    max_tokens: 300,
-    system: [cachedSystem(DISCOVERY_SYSTEM_PROMPT)],
-    messages: parsed.messages.map(({ role, content }) => ({ role, content })),
-  })
-
   const encoder = new TextEncoder()
   const readable = new ReadableStream({
     async start(controller) {
-      for await (const evt of stream) {
-        if (
-          evt.type === 'content_block_delta' &&
-          evt.delta.type === 'text_delta'
-        ) {
-          controller.enqueue(encoder.encode(evt.delta.text))
+      try {
+        const stream = anthropic().messages.stream({
+          model: MODELS.sonnet(),
+          max_tokens: 400,
+          system: [cachedSystem(DISCOVERY_SYSTEM_PROMPT)],
+          messages: parsed.messages.map(({ role, content }) => ({
+            role,
+            content,
+          })),
+        })
+        for await (const evt of stream) {
+          if (
+            evt.type === 'content_block_delta' &&
+            evt.delta.type === 'text_delta'
+          ) {
+            controller.enqueue(encoder.encode(evt.delta.text))
+          }
         }
+      } catch (err) {
+        console.error('Discovery stream error:', err)
+        controller.enqueue(
+          encoder.encode(
+            "Sorry, I hit a snag on my end. Can you send that again?"
+          )
+        )
+      } finally {
+        controller.close()
       }
-      controller.close()
     },
   })
 

@@ -156,7 +156,7 @@ export default function IntakeSidebar({ messages, act, questionsAnswered }: Prop
 
   return (
     <div
-      className="relative flex flex-col justify-between h-full px-8 py-10 lg:px-10 lg:py-12 overflow-hidden"
+      className="relative flex flex-col justify-between h-full px-7 py-6 lg:px-8 lg:py-7 overflow-hidden"
       style={{ borderRight: '1px solid var(--white-ghost)' }}
     >
       {/* Glow orb */}
@@ -173,7 +173,7 @@ export default function IntakeSidebar({ messages, act, questionsAnswered }: Prop
 
       {/* Top */}
       <div className="relative z-10">
-        <div className="flex items-center gap-3 mb-12">
+        <div className="flex items-center gap-3 mb-5">
           <span
             className="text-[10px] font-semibold tracking-[0.3em] uppercase"
             style={{ color: theme.accentColor }}
@@ -189,7 +189,7 @@ export default function IntakeSidebar({ messages, act, questionsAnswered }: Prop
         </div>
 
         {/* Act Progress */}
-        <div className="flex flex-col gap-3 mb-14">
+        <div className="flex flex-col gap-1.5 mb-6">
           {[1, 2, 3, 4].map((step) => {
             const isActive = act === step
             const isComplete = act > step
@@ -233,7 +233,7 @@ export default function IntakeSidebar({ messages, act, questionsAnswered }: Prop
         {/* Headline */}
         <div>
           <div
-            className="inline-flex items-center gap-2 rounded-full px-3 py-1 mb-5"
+            className="inline-flex items-center gap-2 rounded-full px-3 py-1 mb-3"
             style={{
               background: theme.glowColor,
               border: `1px solid ${theme.accentColor}22`,
@@ -246,7 +246,7 @@ export default function IntakeSidebar({ messages, act, questionsAnswered }: Prop
               {theme.tag}
             </span>
           </div>
-          <h2 className="text-[22px] font-bold leading-tight mb-4 tracking-[-0.01em] text-[var(--white-warm)]">
+          <h2 className="text-[20px] font-bold leading-tight mb-2 tracking-[-0.01em] text-[var(--white-warm)]">
             {theme.headline}
           </h2>
           <p className="text-[13px] text-[var(--white-muted)] leading-relaxed max-w-[260px]">
