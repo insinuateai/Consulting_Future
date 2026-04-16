@@ -106,7 +106,7 @@ export function HireForm() {
           htmlFor="hire-email"
           className="font-mono text-[10px] uppercase tracking-[0.25em] text-warm/60"
         >
-          Your email (where they'll work from)
+          Your email (where they&apos;ll work from)
         </label>
         <input
           id="hire-email"

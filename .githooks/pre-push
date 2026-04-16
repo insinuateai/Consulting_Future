@@ -4,5 +4,5 @@ set -e
 echo "→ typecheck"
 npx --no-install tsc --noEmit
 
-# Lint is intentionally not gated here — repo has standing lint debt.
-# Run `npm run lint` manually or re-enable once clean.
+echo "→ lint"
+npx --no-install eslint .

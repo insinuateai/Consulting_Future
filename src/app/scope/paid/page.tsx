@@ -27,7 +27,7 @@ export default async function ScopePaidPage({
         <p className="mt-6 text-lg text-warm/70">
           Kian and Charlie will email you inside the next hour with the
           kickoff calendar invite, the SOW for countersignature, and a
-          shared Slack Connect channel. You'll have working software in
+          shared Slack Connect channel. You&apos;ll have working software in
           your hands before the week is out.
         </p>
         <div className="mt-10 flex flex-wrap gap-4">

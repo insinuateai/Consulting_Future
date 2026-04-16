@@ -1,6 +1,7 @@
 'use client'
 
 import { useRef } from 'react'
+import Link from 'next/link'
 import { motion, useInView } from 'framer-motion'
 
 const EASE = [0.16, 1, 0.3, 1] as const
@@ -101,12 +102,12 @@ export default function ManifestoPage() {
           transition={{ duration: 0.8, delay: 0.4 }}
           className="mt-24 pt-12 border-t border-white/[0.06]"
         >
-          <a
+          <Link
             href="/"
             className="font-mono text-xs text-muted hover:text-cyan transition-colors duration-300 tracking-wider"
           >
             ← Back
-          </a>
+          </Link>
         </motion.div>
 
       </div>

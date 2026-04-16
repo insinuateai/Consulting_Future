@@ -72,7 +72,7 @@ export function BuildLauncher() {
           htmlFor="build-email"
           className="font-mono text-[10px] uppercase tracking-[0.25em] text-warm/60"
         >
-          Email (optional · we'll send the live URL + repo)
+          Email (optional · we&apos;ll send the live URL + repo)
         </label>
         <input
           id="build-email"

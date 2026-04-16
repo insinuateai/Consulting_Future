@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import Link from 'next/link'
 import { useSoundContext } from '@/lib/SoundContext'
 
 const NAV_LINKS = [
@@ -43,14 +44,14 @@ export function Navbar() {
       ].join(' ')}
     >
       {/* Logo */}
-      <a
+      <Link
         href="/"
         onMouseEnter={() => playEffect('hover')}
         className="font-display text-xl text-warm tracking-tight hover:text-cyan transition-colors duration-300"
         aria-label="Insinuate — home"
       >
         Insinuate
-      </a>
+      </Link>
 
       {/* Center nav links */}
       <ul

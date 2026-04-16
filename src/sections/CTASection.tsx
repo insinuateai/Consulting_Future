@@ -98,7 +98,7 @@ export function CTASection() {
           transition={{ duration: 0.8, ease: EASE, delay: 0.6 }}
           className="font-sans text-sm text-muted mt-6 max-w-md mx-auto"
         >
-          15 minutes. No commitment. We'll show you exactly what we'd build.
+          15 minutes. No commitment. We&apos;ll show you exactly what we&apos;d build.
         </motion.p>
 
         <motion.p

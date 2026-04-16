@@ -332,7 +332,7 @@ Ready to build? https://calendly.com/kianjquinlan/30min
             rel="noopener noreferrer"
             className="flex-1 text-center font-mono text-sm uppercase tracking-widest py-4 px-8 bg-cyan text-deep rounded-sm hover:bg-cyan/90 transition-all duration-300 glow-cyan"
           >
-            Let's Build This
+            Let&apos;s Build This
           </a>
 
           <button
