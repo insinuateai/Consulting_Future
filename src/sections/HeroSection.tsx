@@ -1,11 +1,37 @@
 'use client'
 
+import { useState } from 'react'
 import { motion } from 'framer-motion'
 import { ParticleField } from '@/components/ParticleField'
 
 const EASE_CINEMATIC = [0.16, 1, 0.3, 1] as const
 
+function normalizeUrl(raw: string): string | null {
+  const trimmed = raw.trim()
+  if (!trimmed) return null
+  // Allow bare domains like "acme.com".
+  const withProto = /^https?:\/\//i.test(trimmed) ? trimmed : `https://${trimmed}`
+  try {
+    const u = new URL(withProto)
+    if (!u.hostname.includes('.')) return null
+    return u.toString()
+  } catch {
+    return null
+  }
+}
+
 export function HeroSection() {
+  const [url, setUrl] = useState('')
+
+  const submitXRay = () => {
+    const normalized = normalizeUrl(url)
+    if (!normalized) return
+    // Hand off to XRaySection via hash param — it auto-starts on hashchange.
+    window.location.hash = `xray?u=${encodeURIComponent(normalized)}`
+    const el = document.getElementById('xray')
+    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  }
+
   return (
     <section
       id="hero"
@@ -79,38 +105,56 @@ export function HeroSection() {
           48 hours from problem to production. No decks. No delays. No bullshit.
         </motion.p>
 
-        {/* CTA row */}
-        <motion.div
-          className="flex flex-col sm:flex-row gap-4 items-center"
+        {/* Inline X-Ray URL field — the hero IS the first conversion step. */}
+        <motion.form
+          onSubmit={(e) => {
+            e.preventDefault()
+            submitXRay()
+          }}
+          className="flex flex-col sm:flex-row items-stretch gap-3 w-full max-w-xl"
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 1, delay: 2.2, ease: EASE_CINEMATIC }}
         >
-          <motion.a
-            href="#xray"
-            className="bg-cyan text-deep font-mono text-sm uppercase tracking-wider px-8 py-4 rounded-full inline-block"
-            whileHover={{
+          <label htmlFor="hero-url" className="sr-only">Your company URL</label>
+          <input
+            id="hero-url"
+            type="text"
+            inputMode="url"
+            autoComplete="off"
+            spellCheck={false}
+            placeholder="yourcompany.com"
+            value={url}
+            onChange={(e) => setUrl(e.target.value)}
+            className="flex-1 bg-white/[0.04] border border-white/[0.08] focus:border-cyan/60 outline-none rounded-full px-5 py-3.5 font-mono text-sm text-warm placeholder:text-muted/50 transition-colors"
+          />
+          <motion.button
+            type="submit"
+            disabled={!url.trim()}
+            className="bg-cyan text-deep font-mono text-xs sm:text-sm uppercase tracking-wider px-6 sm:px-8 py-3.5 rounded-full disabled:opacity-40 disabled:cursor-not-allowed whitespace-nowrap"
+            whileHover={url.trim() ? {
               scale: 1.02,
               boxShadow: '0 0 40px rgba(0,240,255,0.35), 0 0 80px rgba(0,240,255,0.12)',
-            }}
+            } : {}}
             transition={{ duration: 0.3 }}
-            aria-label="See what we'd build for you"
+            aria-label="Scan my site with AI"
           >
-            See What We&apos;d Build You
-          </motion.a>
+            Scan My Site →
+          </motion.button>
+        </motion.form>
 
-          <motion.a
-            href="https://calendly.com/kianjquinlan/30min"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="border border-cyan/30 text-cyan font-mono text-sm uppercase tracking-wider px-8 py-4 rounded-full inline-block hover:border-cyan/80 hover:bg-cyan/5"
-            whileHover={{ scale: 1.02 }}
-            transition={{ duration: 0.3 }}
-            aria-label="Book a call"
-          >
-            Book a Call
-          </motion.a>
-        </motion.div>
+        <motion.a
+          href="https://calendly.com/kianjquinlan/30min"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="mt-5 font-mono text-[11px] uppercase tracking-[0.25em] text-muted hover:text-cyan transition-colors"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 1, delay: 2.6, ease: EASE_CINEMATIC }}
+          aria-label="Book a call instead"
+        >
+          or book a 30-min call →
+        </motion.a>
       </div>
 
       {/* Scroll indicator */}

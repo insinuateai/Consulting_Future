@@ -92,6 +92,48 @@ export function XRaySection() {
 
   useEffect(() => () => clearTimers(), [])
 
+  // Auto-start when we arrive with #xray?u=<url> — hero form seeds this.
+  useEffect(() => {
+    const tryStartFromHash = () => {
+      const hash = window.location.hash
+      if (!hash.startsWith('#xray')) return
+      const query = hash.slice(5).replace(/^\?/, '')
+      if (!query) return
+      const params = new URLSearchParams(query)
+      const u = params.get('u')?.trim()
+      if (!u) return
+      // Clear the query portion so a refresh doesn't re-trigger.
+      history.replaceState(null, '', '#xray')
+      setUrl(u)
+      // Defer so the URL state lands first, then trigger the same flow.
+      queueMicrotask(() => {
+        if (phase === 'idle') {
+          // Mirror startAnalysis but with the hash url
+          clearTimers()
+          setAnalysisData(null)
+          playEffect('click')
+          advancePhase('scanning')
+          fetch('/api/xray', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ url: u }),
+          })
+            .then((r) => r.json())
+            .then((data) => setAnalysisData(data))
+            .catch(() => setAnalysisData(FALLBACK_DATA))
+          timers.current.push(setTimeout(() => advancePhase('tech_stack'), 3000))
+          timers.current.push(setTimeout(() => advancePhase('opportunities'), 5000))
+          timers.current.push(setTimeout(() => advancePhase('results'), 8000))
+          timers.current.push(setTimeout(() => setPhase('cta'), 11000))
+        }
+      })
+    }
+    tryStartFromHash()
+    window.addEventListener('hashchange', tryStartFromHash)
+    return () => window.removeEventListener('hashchange', tryStartFromHash)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
   const isAnalyzing = phase !== 'idle'
   const isComplete  = phase === 'results' || phase === 'cta'
   const progress    = PHASE_PROGRESS[phase]

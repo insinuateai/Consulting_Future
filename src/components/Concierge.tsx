@@ -6,10 +6,28 @@ import type { ChatMessage, ConciergeEvent } from '@/lib/concierge/types'
 
 const EASE = [0.16, 1, 0.3, 1] as const
 const STORAGE_KEY = 'insinuate:concierge:v1'
+const NUDGE_KEY = 'insinuate:concierge:nudged-v1'
+const NUDGE_DWELL_MS = 20_000
 
 interface StoredState {
   messages: ChatMessage[]
   email?: string
+}
+
+// Web Speech API typing — varies across browsers, kept intentionally narrow.
+type AnyWindow = typeof window & {
+  SpeechRecognition?: new () => SpeechRecognitionLike
+  webkitSpeechRecognition?: new () => SpeechRecognitionLike
+}
+interface SpeechRecognitionLike {
+  continuous: boolean
+  interimResults: boolean
+  lang: string
+  start: () => void
+  stop: () => void
+  onresult: ((e: { results: { 0: { transcript: string } }[] }) => void) | null
+  onerror: (() => void) | null
+  onend: (() => void) | null
 }
 
 const SEED: ChatMessage[] = [
@@ -26,8 +44,10 @@ export function Concierge() {
   const [email, setEmail] = useState('')
   const [input, setInput] = useState('')
   const [streaming, setStreaming] = useState(false)
+  const [listening, setListening] = useState(false)
   const [toolEvents, setToolEvents] = useState<string[]>([])
   const scrollRef = useRef<HTMLDivElement>(null)
+  const recognitionRef = useRef<SpeechRecognitionLike | null>(null)
 
   useEffect(() => {
     try {
@@ -54,6 +74,54 @@ export function Concierge() {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight
     }
   }, [messages, open, streaming])
+
+  // Proactive open after dwell. Fires once per visitor until they dismiss.
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    let nudged = false
+    try {
+      nudged = localStorage.getItem(NUDGE_KEY) === '1'
+    } catch {}
+    if (nudged) return
+    const id = window.setTimeout(() => {
+      // Only nudge if the user has scrolled at least one viewport and isn't
+      // already interacting with the panel.
+      if (window.scrollY < window.innerHeight * 0.4) return
+      setOpen(true)
+      try { localStorage.setItem(NUDGE_KEY, '1') } catch {}
+    }, NUDGE_DWELL_MS)
+    return () => window.clearTimeout(id)
+  }, [])
+
+  const toggleVoice = () => {
+    if (typeof window === 'undefined') return
+    const W = window as AnyWindow
+    const Ctor = W.SpeechRecognition ?? W.webkitSpeechRecognition
+    if (!Ctor) return
+    if (listening) {
+      recognitionRef.current?.stop()
+      return
+    }
+    const rec = new Ctor()
+    rec.continuous = false
+    rec.interimResults = true
+    rec.lang = 'en-US'
+    rec.onresult = (e) => {
+      const transcript = Array.from(e.results as unknown as ArrayLike<{ 0: { transcript: string } }>)
+        .map((r) => r[0].transcript)
+        .join('')
+      setInput(transcript)
+    }
+    rec.onerror = () => setListening(false)
+    rec.onend = () => setListening(false)
+    recognitionRef.current = rec
+    rec.start()
+    setListening(true)
+  }
+
+  const hasVoiceSupport =
+    typeof window !== 'undefined' &&
+    Boolean((window as AnyWindow).SpeechRecognition ?? (window as AnyWindow).webkitSpeechRecognition)
 
   const send = async () => {
     const text = input.trim()
@@ -212,6 +280,31 @@ export function Concierge() {
                   disabled={streaming}
                   className="flex-1 rounded border border-white/[0.08] bg-black/40 px-3 py-2 text-sm text-warm placeholder:text-warm/30 focus:border-cyan-400/60 focus:outline-none disabled:opacity-60"
                 />
+                {hasVoiceSupport && (
+                  <button
+                    type="button"
+                    onClick={toggleVoice}
+                    aria-label={listening ? 'Stop voice input' : 'Start voice input'}
+                    aria-pressed={listening}
+                    className={
+                      listening
+                        ? 'relative rounded border border-magenta/70 bg-magenta/15 px-3 font-mono text-[11px] uppercase tracking-widest text-magenta transition'
+                        : 'rounded border border-white/[0.12] bg-white/[0.03] px-3 font-mono text-[11px] uppercase tracking-widest text-warm/70 transition hover:border-cyan-400/40 hover:text-cyan-300'
+                    }
+                  >
+                    {listening ? (
+                      <motion.span
+                        aria-hidden="true"
+                        animate={{ opacity: [1, 0.35, 1] }}
+                        transition={{ duration: 1.1, repeat: Infinity, ease: 'easeInOut' }}
+                      >
+                        ●
+                      </motion.span>
+                    ) : (
+                      '◉'
+                    )}
+                  </button>
+                )}
                 <button
                   onClick={send}
                   disabled={streaming || !input.trim()}
