@@ -3,6 +3,13 @@ import { z } from 'zod'
 const serverSchema = z.object({
   NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
 
+  LLM_PROVIDER: z.enum(['groq', 'anthropic']).default('groq'),
+
+  GROQ_API_KEY: z.string().min(1).optional(),
+  GROQ_MODEL_FAST: z.string().default('llama-3.1-8b-instant'),
+  GROQ_MODEL_MID: z.string().default('llama-3.3-70b-versatile'),
+  GROQ_MODEL_SMART: z.string().default('openai/gpt-oss-120b'),
+
   ANTHROPIC_API_KEY: z.string().min(1).optional(),
   ANTHROPIC_MODEL_OPUS: z.string().default('claude-opus-4-6'),
   ANTHROPIC_MODEL_SONNET: z.string().default('claude-sonnet-4-6'),
