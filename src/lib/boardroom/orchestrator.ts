@@ -1,4 +1,4 @@
-import { anthropic, MODELS, cachedSystem } from '../anthropic'
+import { stream, complete, MODELS, extractJson } from '../llm'
 import { getDossierBySlug } from '../dossier/persist'
 import { PERSONAS } from './personas'
 import type { BoardRoomEvent, BoardRoomInput, ExecPersona, ExecRole, Vote } from './types'
@@ -173,26 +173,20 @@ async function streamExec(args: StreamExecArgs): Promise<string> {
   let lastEmit = 0
   const INTERVAL_MS = 60
 
-  const stream = anthropic().messages.stream({
+  for await (const delta of stream({
     model: MODELS.sonnet(),
-    max_tokens: 500,
-    system: [cachedSystem(args.sharedContext), cachedSystem(args.persona.systemPrompt)],
+    maxTokens: 500,
+    system: [args.sharedContext, args.persona.systemPrompt],
     messages: [{ role: 'user', content: args.userPrompt }],
-  })
-
-  for await (const evt of stream) {
-    if (evt.type === 'content_block_delta' && evt.delta.type === 'text_delta') {
-      buffer += evt.delta.text
-      const now = Date.now()
-      if (now - lastEmit > INTERVAL_MS) {
-        args.emit({ type: 'exec.chunk', role: args.persona.role, chunk: evt.delta.text })
-        lastEmit = now
-      }
+  })) {
+    buffer += delta
+    const now = Date.now()
+    if (now - lastEmit > INTERVAL_MS) {
+      args.emit({ type: 'exec.chunk', role: args.persona.role, chunk: delta })
+      lastEmit = now
     }
   }
-  const final = await stream.finalMessage()
-  const text = final.content.flatMap((b) => (b.type === 'text' ? [b.text] : [])).join('')
-  return text || buffer
+  return buffer
 }
 
 // =============================================================================
@@ -238,12 +232,12 @@ async function callVote(
   sharedContext: string,
   transcript: string
 ): Promise<{ votes: Vote[]; winner: string }> {
-  const msg = await anthropic().messages.create({
+  const text = await complete({
     model: MODELS.opus(),
-    max_tokens: 1200,
+    maxTokens: 1200,
     system: [
-      cachedSystem(sharedContext),
-      cachedSystem(`You are the Board Room scribe. Given the full transcript
+      sharedContext,
+      `You are the Board Room scribe. Given the full transcript
 from 4 execs (CFO, CMO, CTO, COO), extract each exec's final recommendation
 and confidence, then declare the single winning recommendation (either
 consensus or the strongest dissenting vote if tied). Output ONLY JSON in a
@@ -257,24 +251,17 @@ consensus or the strongest dissenting vote if tied). Output ONLY JSON in a
       "rationale": string }
   ],
   "winner": string
-}`),
+}`,
     ],
     messages: [{ role: 'user', content: transcript }],
   })
-  const text = msg.content.flatMap((b) => (b.type === 'text' ? [b.text] : [])).join('')
   return parseVote(text)
 }
 
 function parseVote(text: string): { votes: Vote[]; winner: string } {
-  const fence = text.match(/```json\s*([\s\S]*?)```/i)
-  const candidate = fence ? fence[1] : text
-  try {
-    const parsed = JSON.parse(candidate.trim())
-    if (Array.isArray(parsed.votes) && typeof parsed.winner === 'string') {
-      return parsed as { votes: Vote[]; winner: string }
-    }
-  } catch {
-    // fall through to fallback
+  const parsed = extractJson<{ votes: Vote[]; winner: string }>(text)
+  if (parsed && Array.isArray(parsed.votes) && typeof parsed.winner === 'string') {
+    return parsed
   }
   return {
     votes: [],

@@ -1,4 +1,4 @@
-import { complete, MODELS, textOf } from '../anthropic'
+import { complete, MODELS, extractJson } from '../llm'
 import type { VideoInput, VideoScript } from './types'
 
 const SYSTEM = `
@@ -37,34 +37,20 @@ ${(input.highlights ?? []).map((h, i) => `${i + 1}. ${h}`).join('\n')}
 Write the script now.
 `.trim()
 
-  const msg = await complete({
+  const raw = await complete({
     model: MODELS.sonnet(),
-    max_tokens: 1200,
+    maxTokens: 1200,
     system: SYSTEM,
     messages: [{ role: 'user', content: user }],
   })
 
-  const raw = textOf(msg)
-  const json = extractJson(raw)
+  const json = extractJson<VideoScript>(raw)
   if (!json) {
     throw new Error('Script generator returned no parseable JSON')
   }
-  return json as VideoScript
+  return json
 }
 
 export function scriptToText(s: VideoScript): string {
   return [s.hook, ...s.body, s.closer].join('\n\n')
-}
-
-function extractJson(raw: string): unknown | null {
-  const fence = raw.match(/```(?:json)?\s*([\s\S]*?)```/)
-  const body = fence ? fence[1] : raw
-  const first = body.indexOf('{')
-  const last = body.lastIndexOf('}')
-  if (first < 0 || last < 0) return null
-  try {
-    return JSON.parse(body.slice(first, last + 1))
-  } catch {
-    return null
-  }
 }

@@ -1,6 +1,6 @@
 import { NextRequest } from 'next/server'
 import { z } from 'zod'
-import { MODELS } from '@/lib/anthropic'
+import { MODELS } from '@/lib/llm'
 import { runDossier } from '@/lib/dossier/orchestrator'
 import {
   upsertLead,

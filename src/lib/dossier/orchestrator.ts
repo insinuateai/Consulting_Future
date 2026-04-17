@@ -1,4 +1,4 @@
-import { anthropic, MODELS, cachedSystem } from '../anthropic'
+import { stream, MODELS } from '../llm'
 import { fetchPage } from './fetch'
 import { SWARM_AGENTS } from './agents'
 import type {
@@ -48,10 +48,7 @@ export async function* runDossier(
       slug: agent.slug,
       model: MODELS.haiku(),
       maxTokens: 600,
-      system: [
-        cachedSystem(sharedContextBlock),
-        cachedSystem(intelSystemFor(agent.slug)),
-      ],
+      system: [sharedContextBlock, intelSystemFor(agent.slug)],
       userPrompt: intelUserFor(agent.slug, page.textExcerpt),
       emit,
     })
@@ -68,10 +65,7 @@ export async function* runDossier(
       slug: agent.slug,
       model: MODELS.sonnet(),
       maxTokens: 800,
-      system: [
-        cachedSystem(analysisContext),
-        cachedSystem(analysisSystemFor(agent.slug)),
-      ],
+      system: [analysisContext, analysisSystemFor(agent.slug)],
       userPrompt: analysisUserFor(agent.slug),
       emit,
     })
@@ -88,10 +82,7 @@ export async function* runDossier(
       slug: agent.slug,
       model: MODELS.opus(),
       maxTokens: 1200,
-      system: [
-        cachedSystem(strategyContext),
-        cachedSystem(strategySystemFor(agent.slug)),
-      ],
+      system: [strategyContext, strategySystemFor(agent.slug)],
       userPrompt: strategyUserFor(agent.slug, input),
       emit,
     })
@@ -190,8 +181,30 @@ async function runLane(
   }
   let done = false
   const results: AgentRunResult[] = []
+
+  // Semaphore: Groq free tier ≈ 30 RPM on big models. Cap concurrent
+  // in-flight agents per lane so a single dossier doesn't burn the pool.
+  const MAX_CONCURRENT = 6
+  let active = 0
+  const pending: (() => void)[] = []
+  const acquire = () =>
+    new Promise<void>((resolve) => {
+      const grant = () => {
+        active++
+        resolve()
+      }
+      if (active < MAX_CONCURRENT) grant()
+      else pending.push(grant)
+    })
+  const release = () => {
+    active--
+    const next = pending.shift()
+    if (next) next()
+  }
+
   const work = Promise.all(
     agents.map(async (agent) => {
+      await acquire()
       try {
         const r = await worker(agent, emit)
         results.push(r)
@@ -202,6 +215,8 @@ async function runLane(
           durationMs: 0,
         })
         emit({ type: 'agent.error', slug: agent.slug, error: String(err) })
+      } finally {
+        release()
       }
     })
   ).then(() => {
@@ -236,7 +251,7 @@ interface RunAgentArgs {
   slug: string
   model: string
   maxTokens: number
-  system: ReturnType<typeof cachedSystem>[]
+  system: string[] | string
   userPrompt: string
   emit: (ev: DossierEvent) => void
 }
@@ -247,36 +262,26 @@ async function runAgent(args: RunAgentArgs): Promise<AgentRunResult> {
 
   let lastEmitAt = 0
   const EMIT_INTERVAL_MS = 80 // throttle thought emissions
+  let text = ''
 
   try {
-    const stream = anthropic().messages.stream({
+    for await (const delta of stream({
       model: args.model,
-      max_tokens: args.maxTokens,
+      maxTokens: args.maxTokens,
       system: args.system,
       messages: [{ role: 'user', content: args.userPrompt }],
-    })
-
-    for await (const evt of stream) {
-      if (
-        evt.type === 'content_block_delta' &&
-        evt.delta.type === 'text_delta'
-      ) {
-        const now = Date.now()
-        if (now - lastEmitAt > EMIT_INTERVAL_MS) {
-          args.emit({
-            type: 'agent.thought',
-            slug: args.slug,
-            chunk: evt.delta.text,
-          })
-          lastEmitAt = now
-        }
+    })) {
+      text += delta
+      const now = Date.now()
+      if (now - lastEmitAt > EMIT_INTERVAL_MS) {
+        args.emit({
+          type: 'agent.thought',
+          slug: args.slug,
+          chunk: delta,
+        })
+        lastEmitAt = now
       }
     }
-
-    const final = await stream.finalMessage()
-    const text = final.content
-      .flatMap((b) => (b.type === 'text' ? [b.text] : []))
-      .join('')
 
     const output = tryParseJson(text) ?? { text }
     const durationMs = Date.now() - start
@@ -324,7 +329,7 @@ function runStructuredAgent<T>(args: RunStructuredArgs<T>): StructuredResult<T> 
       slug: args.slug,
       model: args.model,
       maxTokens: args.maxTokens,
-      system: [cachedSystem(args.system)],
+      system: args.system,
       userPrompt: args.userPrompt,
       emit,
     })

@@ -1,6 +1,6 @@
 import { NextRequest } from 'next/server'
 import { z } from 'zod'
-import { anthropic, MODELS, cachedSystem } from '@/lib/anthropic'
+import { stream, MODELS } from '@/lib/llm'
 import { limits, rateKey } from '@/lib/redis'
 import { DISCOVERY_SYSTEM_PROMPT } from '@/lib/intake/prompts'
 
@@ -42,22 +42,16 @@ export async function POST(req: NextRequest) {
   const readable = new ReadableStream({
     async start(controller) {
       try {
-        const stream = anthropic().messages.stream({
+        for await (const delta of stream({
           model: MODELS.sonnet(),
-          max_tokens: 400,
-          system: [cachedSystem(DISCOVERY_SYSTEM_PROMPT)],
+          maxTokens: 400,
+          system: DISCOVERY_SYSTEM_PROMPT,
           messages: parsed.messages.map(({ role, content }) => ({
             role,
             content,
           })),
-        })
-        for await (const evt of stream) {
-          if (
-            evt.type === 'content_block_delta' &&
-            evt.delta.type === 'text_delta'
-          ) {
-            controller.enqueue(encoder.encode(evt.delta.text))
-          }
+        })) {
+          controller.enqueue(encoder.encode(delta))
         }
       } catch (err) {
         console.error('Discovery stream error:', err)

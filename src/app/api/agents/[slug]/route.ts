@@ -1,6 +1,6 @@
 import { NextRequest } from 'next/server'
 import { z } from 'zod'
-import { anthropic, MODELS } from '@/lib/anthropic'
+import { complete, MODELS, extractJson } from '@/lib/llm'
 import { AGENT_SPECS, type AgentSlug } from '@/lib/agents/prompts'
 import { limits, rateKey } from '@/lib/redis'
 import { track, EVENTS } from '@/lib/posthog'
@@ -48,13 +48,12 @@ export async function POST(req: NextRequest, { params }: Params) {
 
   const started = Date.now()
   try {
-    const msg = await anthropic().messages.create({
+    const text = await complete({
       model,
-      max_tokens: agent.maxTokens,
+      maxTokens: agent.maxTokens,
       system: agent.systemBlocks,
       messages: [{ role: 'user', content: agent.userPrompt(parsed.input) }],
     })
-    const text = msg.content.flatMap((b) => (b.type === 'text' ? [b.text] : [])).join('')
     const parsedOutput = extractJson(text)
     const durationMs = Date.now() - started
 
@@ -75,24 +74,5 @@ export async function POST(req: NextRequest, { params }: Params) {
     })
   } catch (err) {
     return Response.json({ error: String(err) }, { status: 500 })
-  }
-}
-
-function extractJson(text: string): unknown | null {
-  const fence = text.match(/```json\s*([\s\S]*?)```/i)
-  const candidate = fence ? fence[1].trim() : text.trim()
-  try {
-    return JSON.parse(candidate)
-  } catch {
-    const start = candidate.indexOf('{')
-    const end = candidate.lastIndexOf('}')
-    if (start >= 0 && end > start) {
-      try {
-        return JSON.parse(candidate.slice(start, end + 1))
-      } catch {
-        return null
-      }
-    }
-    return null
   }
 }

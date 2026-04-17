@@ -1,7 +1,7 @@
 // Playground agent prompts — each agent is a single Claude call against the
 // user's own data. Output is structured JSON parsed in the route handler.
 
-import { cachedSystem } from '../anthropic'
+import { cachedSystem } from '../llm'
 
 export type AgentSlug = 'invoice' | 'leads' | 'support'
 

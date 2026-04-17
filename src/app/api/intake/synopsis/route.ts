@@ -1,6 +1,6 @@
 import { NextRequest } from 'next/server'
 import { z } from 'zod'
-import { anthropic, MODELS, cachedSystem, textOf } from '@/lib/anthropic'
+import { complete, MODELS, extractJson } from '@/lib/llm'
 import { limits, rateKey } from '@/lib/redis'
 import { SYNOPSIS_SYSTEM_PROMPT } from '@/lib/intake/prompts'
 import { sendEmail } from '@/lib/resend'
@@ -164,10 +164,10 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-    const completion = await anthropic().messages.create({
+    const raw = await complete({
       model: MODELS.opus(),
-      max_tokens: 1500,
-      system: [cachedSystem(SYNOPSIS_SYSTEM_PROMPT)],
+      maxTokens: 1500,
+      system: SYNOPSIS_SYSTEM_PROMPT,
       messages: [
         ...parsed.messages.map(({ role, content }) => ({
           role: role as 'user' | 'assistant',
@@ -181,23 +181,7 @@ export async function POST(req: NextRequest) {
       ],
     })
 
-    const raw = textOf(completion)
-    let synopsis: Synopsis
-    try {
-      synopsis = JSON.parse(raw)
-    } catch {
-      // Try to extract JSON from markdown fences
-      const jsonMatch = raw.match(/```(?:json)?\s*([\s\S]*?)```/)
-      if (jsonMatch) {
-        try {
-          synopsis = JSON.parse(jsonMatch[1])
-        } catch {
-          synopsis = FALLBACK_SYNOPSIS
-        }
-      } else {
-        synopsis = FALLBACK_SYNOPSIS
-      }
-    }
+    const synopsis: Synopsis = extractJson<Synopsis>(raw) ?? FALLBACK_SYNOPSIS
 
     // Fire-and-forget: persist + email (don't block the response)
     persistSession(parsed.messages, synopsis, parsed.email).catch(() => {})

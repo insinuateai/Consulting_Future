@@ -1,4 +1,4 @@
-import { anthropic, MODELS, cachedSystem } from '../anthropic'
+import { stream, MODELS } from '../llm'
 import { deployApp, inlinePreview } from './deploy'
 import type {
   BuildAppEvent,
@@ -56,10 +56,10 @@ export async function* runBuildApp(
 ): AsyncGenerator<BuildAppEvent> {
   yield { type: 'started', prompt: input.prompt, appId }
 
-  const stream = anthropic().messages.stream({
+  const textStream = stream({
     model: MODELS.opus(),
-    max_tokens: 8000,
-    system: [cachedSystem(SYSTEM_PROMPT)],
+    maxTokens: 8000,
+    system: SYSTEM_PROMPT,
     messages: [
       {
         role: 'user',
@@ -82,9 +82,8 @@ ${input.prompt}
   const FILE_OPEN_RE = /<file\s+path="([^"]+)"\s+lang="([^"]+)">/
   const PLAN_RE = /```plan\s*([\s\S]*?)```/
 
-  for await (const evt of stream) {
-    if (evt.type !== 'content_block_delta' || evt.delta.type !== 'text_delta') continue
-    buffer += evt.delta.text
+  for await (const delta of textStream) {
+    buffer += delta
 
     // 1. Try to extract the plan once
     if (!planEmitted) {
@@ -142,7 +141,6 @@ ${input.prompt}
       currentFile = null
     }
   }
-  await stream.finalMessage()
 
   if (files.length === 0) {
     yield { type: 'error', error: 'Model returned no files — prompt was likely rejected or ambiguous.' }

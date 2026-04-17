@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { anthropic, MODELS, cachedSystem, textOf } from '@/lib/anthropic'
+import { complete, MODELS, extractJson } from '@/lib/llm'
 import { limits, rateKey } from '@/lib/redis'
 
 export const runtime = 'nodejs'
@@ -167,10 +167,10 @@ export async function POST(req: NextRequest) {
   try {
     const truncated = truncateHtml(html)
 
-    const completion = await anthropic().messages.create({
+    const raw = await complete({
       model: MODELS.sonnet(),
-      max_tokens: 800,
-      system: [cachedSystem(XRAY_SYSTEM_PROMPT)],
+      maxTokens: 800,
+      system: XRAY_SYSTEM_PROMPT,
       messages: [
         {
           role: 'user',
@@ -179,8 +179,7 @@ export async function POST(req: NextRequest) {
       ],
     })
 
-    const raw = textOf(completion)
-    const parsed = JSON.parse(raw) as XRayData
+    const parsed = (extractJson<XRayData>(raw) ?? (JSON.parse(raw) as XRayData))
 
     // Validate and sanitize
     return NextResponse.json({

@@ -1,4 +1,4 @@
-import { complete, MODELS, textOf } from '../anthropic'
+import { complete, MODELS, extractJson } from '../llm'
 
 const SYSTEM = `
 You generate a "digital employee" persona for a 7-day AI agent trial.
@@ -24,9 +24,9 @@ export interface DigitalEmployeePersona {
 export async function generatePersona(
   taskBrief: string
 ): Promise<DigitalEmployeePersona> {
-  const msg = await complete({
+  const raw = await complete({
     model: MODELS.sonnet(),
-    max_tokens: 600,
+    maxTokens: 600,
     system: SYSTEM,
     messages: [
       {
@@ -35,8 +35,7 @@ export async function generatePersona(
       },
     ],
   })
-  const raw = textOf(msg)
-  const json = extract(raw)
+  const json = extractJson<DigitalEmployeePersona>(raw)
   if (!json) {
     return {
       name: 'Jordan',
@@ -44,18 +43,5 @@ export async function generatePersona(
       intro: `Hi — I'm Jordan, starting today. I'll handle: ${taskBrief.slice(0, 120)}. I'll send you a wrap-up each evening for the next 7 days.\n\nReply anytime and I'll adjust.`,
     }
   }
-  return json as DigitalEmployeePersona
-}
-
-function extract(raw: string): unknown | null {
-  const fence = raw.match(/```(?:json)?\s*([\s\S]*?)```/)
-  const body = fence ? fence[1] : raw
-  const first = body.indexOf('{')
-  const last = body.lastIndexOf('}')
-  if (first < 0 || last < 0) return null
-  try {
-    return JSON.parse(body.slice(first, last + 1))
-  } catch {
-    return null
-  }
+  return json
 }

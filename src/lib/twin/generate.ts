@@ -1,4 +1,4 @@
-import { complete, MODELS, textOf } from '../anthropic'
+import { complete, MODELS, extractJson } from '../llm'
 import type { DigitalTwin } from './types'
 
 const SYSTEM = `
@@ -35,30 +35,16 @@ ${(args.opportunities ?? []).map((o, i) => `${i + 1}. ${o}`).join('\n')}
 Return the twin as JSON.
 `.trim()
 
-  const msg = await complete({
+  const raw = await complete({
     model: MODELS.opus(),
-    max_tokens: 2400,
+    maxTokens: 2400,
     system: SYSTEM,
     messages: [{ role: 'user', content: user }],
   })
 
-  const raw = textOf(msg)
-  const parsed = extract(raw)
+  const parsed = extractJson<object>(raw)
   if (!parsed) {
     throw new Error('Twin generator returned no parseable JSON')
   }
-  return { companyName: args.companyName, domain: args.domain, ...(parsed as object) } as DigitalTwin
-}
-
-function extract(raw: string): unknown | null {
-  const fence = raw.match(/```(?:json)?\s*([\s\S]*?)```/)
-  const body = fence ? fence[1] : raw
-  const first = body.indexOf('{')
-  const last = body.lastIndexOf('}')
-  if (first < 0 || last < 0) return null
-  try {
-    return JSON.parse(body.slice(first, last + 1))
-  } catch {
-    return null
-  }
+  return { companyName: args.companyName, domain: args.domain, ...parsed } as DigitalTwin
 }
