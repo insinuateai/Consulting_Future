@@ -1,13 +1,13 @@
-import type Anthropic from '@anthropic-ai/sdk'
+import type { LLMTool } from '../llm'
 
 export const CALENDLY_URL = 'https://calendly.com/kianjquinlan/30min'
 
-export const CONCIERGE_TOOLS: Anthropic.Messages.Tool[] = [
+export const CONCIERGE_TOOLS: LLMTool[] = [
   {
     name: 'book_call',
     description:
       'Offer the Calendly booking link. Use when the user has indicated intent to talk to a human, schedule a call, or signed off on the sales conversation.',
-    input_schema: {
+    parameters: {
       type: 'object',
       properties: {
         reason: {
@@ -22,7 +22,7 @@ export const CONCIERGE_TOOLS: Anthropic.Messages.Tool[] = [
     name: 'send_dossier',
     description:
       'Trigger a personalized strategic dossier for the user\'s company. Only call when you have the user\'s email AND a domain or company URL to analyze.',
-    input_schema: {
+    parameters: {
       type: 'object',
       properties: {
         email: { type: 'string', description: 'User email address' },
@@ -38,7 +38,7 @@ export const CONCIERGE_TOOLS: Anthropic.Messages.Tool[] = [
     name: 'lookup_case_study',
     description:
       'Return a concise summary of a past Insinuate build matching the topic. Use when the user asks about specific past work, outcomes, or wants proof.',
-    input_schema: {
+    parameters: {
       type: 'object',
       properties: {
         topic: {
@@ -53,7 +53,7 @@ export const CONCIERGE_TOOLS: Anthropic.Messages.Tool[] = [
     name: 'estimate_price',
     description:
       'Return a rough price range for an engagement based on the scope described.',
-    input_schema: {
+    parameters: {
       type: 'object',
       properties: {
         scope_summary: {

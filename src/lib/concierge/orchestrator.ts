@@ -1,5 +1,4 @@
-import type Anthropic from '@anthropic-ai/sdk'
-import { anthropic, cachedSystem, MODELS } from '../anthropic'
+import { MODELS, toolConversation, streamToolTurn, pushToolResults } from '../llm'
 import { COMPANY_KB } from './knowledge'
 import { CONCIERGE_TOOLS, runTool } from './tools'
 import type { ChatMessage, ConciergeEvent } from './types'
@@ -23,80 +22,47 @@ Rules:
 export async function* runConcierge(
   messages: ChatMessage[]
 ): AsyncGenerator<ConciergeEvent> {
-  const client = anthropic()
-  const conversation: Anthropic.Messages.MessageParam[] = messages.map((m) => ({
-    role: m.role,
-    content: m.content,
-  }))
+  const conv = toolConversation({
+    system: [SYSTEM_CORE, COMPANY_KB],
+    messages: messages.map((m) => ({ role: m.role, content: m.content })),
+  })
 
   // Agentic loop — bounded at 4 turns to prevent runaway.
   for (let turn = 0; turn < 4; turn++) {
-    const stream = client.messages.stream({
+    const iter = streamToolTurn({
+      conv,
       model: MODELS.sonnet(),
-      max_tokens: 800,
-      system: [cachedSystem(SYSTEM_CORE), cachedSystem(COMPANY_KB)],
       tools: CONCIERGE_TOOLS,
-      messages: conversation,
+      maxTokens: 800,
     })
 
     let currentText = ''
-    const toolCalls: { id: string; name: string; input: Record<string, unknown> }[] = []
-
-    for await (const event of stream) {
-      if (
-        event.type === 'content_block_delta' &&
-        event.delta.type === 'text_delta'
-      ) {
-        currentText += event.delta.text
-        yield { type: 'delta', text: event.delta.text }
+    let result: { text: string; toolCalls: { id: string; name: string; args: Record<string, unknown> }[] } = { text: '', toolCalls: [] }
+    while (true) {
+      const next = await iter.next()
+      if (next.done) {
+        result = next.value
+        break
       }
+      currentText += next.value
+      yield { type: 'delta', text: next.value }
     }
-    const final = await stream.finalMessage()
 
-    // Collect assistant content (text + any tool_use blocks) for the next turn.
-    const assistantBlocks: Anthropic.Messages.ContentBlockParam[] = []
-    for (const block of final.content) {
-      if (block.type === 'text') {
-        assistantBlocks.push({ type: 'text', text: block.text })
-      } else if (block.type === 'tool_use') {
-        assistantBlocks.push({
-          type: 'tool_use',
-          id: block.id,
-          name: block.name,
-          input: block.input as Record<string, unknown>,
-        })
-        toolCalls.push({
-          id: block.id,
-          name: block.name,
-          input: block.input as Record<string, unknown>,
-        })
-      }
-    }
-    conversation.push({ role: 'assistant', content: assistantBlocks })
-
-    if (toolCalls.length === 0) {
-      // No tools — we're done.
-      yield { type: 'complete', message: currentText }
+    if (result.toolCalls.length === 0) {
+      yield { type: 'complete', message: currentText || result.text }
       return
     }
 
     // Run tools + push results back into the conversation.
-    const toolResults: Anthropic.Messages.ContentBlockParam[] = []
-    for (const call of toolCalls) {
-      yield { type: 'tool', name: call.name, args: call.input }
-      const { result } = runTool(call.name, call.input)
-      yield { type: 'tool_result', name: call.name, result }
-      toolResults.push({
-        type: 'tool_result',
-        tool_use_id: call.id,
-        content: result,
-      })
+    const toolResults: { id: string; content: string }[] = []
+    for (const call of result.toolCalls) {
+      yield { type: 'tool', name: call.name, args: call.args }
+      const { result: r } = runTool(call.name, call.args)
+      yield { type: 'tool_result', name: call.name, result: r }
+      toolResults.push({ id: call.id, content: r })
     }
-    conversation.push({ role: 'user', content: toolResults })
+    pushToolResults(conv, toolResults)
   }
 
-  yield {
-    type: 'error',
-    error: 'Max agent turns reached without resolution.',
-  }
+  yield { type: 'error', error: 'Max agent turns reached without resolution.' }
 }
