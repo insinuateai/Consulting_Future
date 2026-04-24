@@ -23,11 +23,12 @@ export function Ticker() {
     <div
       aria-hidden="true"
       className={[
+        'hidden md:flex',
         'fixed bottom-0 left-0 right-0 z-40',
         'h-8 overflow-hidden',
         'bg-deep/90 backdrop-blur-sm',
         'border-t border-white/[0.05]',
-        'flex items-center',
+        'items-center',
       ].join(' ')}
     >
       <div
