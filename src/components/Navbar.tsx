@@ -1,0 +1,88 @@
+'use client'
+
+import { useState, useEffect } from 'react'
+
+const NAV_LINKS = [
+  { label: 'X-Ray',      href: '#xray' },
+  { label: 'War Room',   href: '#warroom' },
+  { label: 'Our Work',   href: '#work' },
+  { label: 'How We Work', href: '#model' },
+] as const
+
+export function Navbar() {
+  const [scrolled, setScrolled] = useState(false)
+
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 20)
+    window.addEventListener('scroll', onScroll, { passive: true })
+    return () => window.removeEventListener('scroll', onScroll)
+  }, [])
+
+  return (
+    <nav
+      aria-label="Main navigation"
+      style={{
+        animation: 'navReveal 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards',
+      }}
+      className={[
+        'fixed top-0 left-0 right-0 z-50',
+        'flex items-center justify-between',
+        'px-6 md:px-12 py-4',
+        'transition-all duration-500',
+        scrolled
+          ? 'bg-deep/80 backdrop-blur-xl border-b border-white/[0.05]'
+          : 'bg-transparent',
+      ].join(' ')}
+    >
+      {/* Logo */}
+      <a
+        href="/"
+        className="font-display text-xl text-warm tracking-tight hover:text-cyan transition-colors duration-300"
+        aria-label="Insinuate — home"
+      >
+        Insinuate
+      </a>
+
+      {/* Center nav links */}
+      <ul
+        className="hidden md:flex items-center gap-8"
+        role="list"
+      >
+        {NAV_LINKS.map(({ label, href }) => (
+          <li key={href}>
+            <a
+              href={href}
+              className={[
+                'font-mono uppercase tracking-widest text-xs',
+                'text-muted hover:text-warm',
+                'transition-colors duration-300',
+                'relative after:absolute after:bottom-[-2px] after:left-0 after:w-0 after:h-px',
+                'after:bg-cyan after:transition-all after:duration-300',
+                'hover:after:w-full',
+              ].join(' ')}
+            >
+              {label}
+            </a>
+          </li>
+        ))}
+      </ul>
+
+      {/* CTA */}
+      <a
+        href="https://calendly.com/kianjquinlan/30min"
+        target="_blank"
+        rel="noopener noreferrer"
+        aria-label="Book a call with Insinuate"
+        className={[
+          'font-mono uppercase tracking-widest text-xs',
+          'px-4 py-2 rounded',
+          'border border-cyan text-cyan',
+          'hover:bg-cyan hover:text-deep',
+          'transition-all duration-300',
+        ].join(' ')}
+      >
+        Book a Call
+      </a>
+    </nav>
+  )
+}
